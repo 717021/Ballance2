@@ -304,6 +304,10 @@
     <Compile Include="Assets\Scripts\Intro.cs" />
     <Compile Include="Assets\Scripts\Worker\BFSReader.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Textures\RimLighting.shader" />
+    <None Include="Assets\Textures\SkyLayer.shader" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
 </Project>
