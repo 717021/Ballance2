@@ -1,4 +1,3 @@
 Temp/
-UnityPackageManager/
-Library/cache/
-Library/ShaderCache/
+Library/
+ProjectSettings/
