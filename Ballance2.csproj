@@ -301,6 +301,7 @@
     <Compile Include="Assets\Scripts\Global\GlobalMediator.cs" />
     <Compile Include="Assets\Scripts\Global\GlobalModLoader.cs" />
     <Compile Include="Assets\Scripts\Global\GlobalPack.cs" />
+    <Compile Include="Assets\Scripts\Intro.cs" />
     <Compile Include="Assets\Scripts\Worker\BFSReader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
