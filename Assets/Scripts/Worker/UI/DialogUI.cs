@@ -44,7 +44,7 @@ public class DialogUI : MonoBehaviour
         else BtnCancel.gameObject.SetActive(true);
         if (btnthird == "" && TextBtnThird != null)
             BtnThird.gameObject.SetActive(false);
-        else BtnThird.gameObject.SetActive(true);
+        else if(TextBtnThird != null) BtnThird.gameObject.SetActive(true);
     }
     public void Show(DialogCallBack c)
     {
