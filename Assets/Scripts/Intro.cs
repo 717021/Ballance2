@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Global;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,6 +8,7 @@ using UnityEngine.UI;
 public class Intro : MonoBehaviour
 {
     public RectTransform ImageProgress;
+    public Image ImageMaskAll;
     public Image ImageLogo;
     public Image ImageCloud1;
     public Image ImageCloud2;
@@ -14,18 +16,34 @@ public class Intro : MonoBehaviour
     public RectTransform Cloud2;
     public float MoveSpeed = 0.3f;
     public int NextScense;
+    public GameObject PanelError;
+    public Text TextError;
+    public Text TextProgress;
 
     private bool movingCloud = true;
     private bool fadeOut = false;
     private float alpha = 1;
     private bool errored = false;
     private bool finished = false;
+    private bool allFadeout = false;
 
-    void Start()
+    void ErrExitButton_Clicked()
     {
+        GlobalMediator.ExitGame();
+    }
+    void ErrReloadButton_Clicked()
+    {
+        errored = false;
+        StartCoroutine(GameInit());
+        PanelError.SetActive(false);
+    }
+    void Start()
+    {     
+        GlobalSettings.StartInIntro = true;
+        GlobalSettings.GlobalSettingsInit();
         GlobalMediator.GlobalMediatorInitialization();
         GlobalModLoader.GlobalModLoaderInitialization();
-
+        StartCoroutine(GameInit());
     }
     void Update()
     {
@@ -63,9 +81,74 @@ public class Intro : MonoBehaviour
             {
                 alpha = 0;
                 fadeOut = false;
-                //if (finished)
-                //j加载menu场景
-                SceneManager.LoadScene(NextScense);
+                if (errored)
+                    PanelError.SetActive(true);
+                else if (finished)
+                    StartCoroutine(InitMenu());
+            }
+        }
+        else if (allFadeout)
+        {
+            if (alpha < 1)
+            {
+                alpha += 1 * Time.deltaTime;
+                ImageMaskAll.color = new Color(0, 0, 0, alpha);
+            }
+            else
+            {
+                alpha = 1;
+                ImageMaskAll.color = new Color(0, 0, 0, alpha);                
+                allFadeout = false;
+            }
+        }
+    }
+    IEnumerator GameInit()
+    {
+        TextProgress.text = "加载 UI ...";
+
+        //等待 UI 加载完成
+        yield return new WaitUntil(GlobalMediator.IsUILoadFinished);
+
+        TextProgress.text = "加载中 ...";
+
+        GlobalModLoader.GameInit(GameInitFeedBack, this);
+    }
+    IEnumerator InitMenu()
+    {
+        alpha = 0;
+        allFadeout = true;
+        yield return new WaitForSeconds(1f);
+        yield return  SceneManager.LoadSceneAsync(NextScense, LoadSceneMode.Additive);
+        gameObject.SetActive(false);
+    }
+    void GameInitFeedBack(bool finished, string status, float progress, bool error = false)
+    {
+        if (error)
+        {
+            TextError.text = status;
+            errored = true;
+        }
+        else
+        {
+            if (finished)
+            {
+                this.finished = true;
+                TextProgress.text = "一切就绪，即将开始!";
+                ImageProgress.sizeDelta = new Vector2(500, ImageProgress.sizeDelta.y);
+                ImageProgress.anchoredPosition = new Vector2(250, 0);
+                if (alpha == 0)
+                {
+                    if (errored)
+                        PanelError.SetActive(true);
+                    else if (finished)
+                        SceneManager.LoadScene(NextScense);
+                }
+            }
+            else
+            {
+                ImageProgress.sizeDelta = new Vector2(500 * progress, ImageProgress.sizeDelta.y);
+                ImageProgress.anchoredPosition = new Vector2(500 * progress / 2, 0);
+                TextProgress.text = status;
             }
         }
     }

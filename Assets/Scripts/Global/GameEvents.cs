@@ -35,4 +35,47 @@ namespace Assets.Scripts.Global
 
         public event OnGameExitHandler OnGameExit;
     }
+    //ModLoader 
+    /// <summary>
+    /// ModLoader 加载完成侦听器
+    /// </summary>
+    public class OnModLoaderFinishedLinister : EventLinster
+    {
+        public OnModLoaderFinishedLinister(OnModLoaderFinishedHandler h) : base("ModLoadFinish")
+        {
+            OnModLoaderFinished += h;
+        }
+
+        public override void OnEvent(object sender, params object[] par)
+        {
+            base.OnEvent(sender, par);
+            if (OnModLoaderFinished != null)
+                OnModLoaderFinished((bool)par[0], par[1] as string, par[2] as string);
+        }
+
+        public delegate void OnModLoaderFinishedHandler(bool success, string info, string errinfo);
+
+        public OnModLoaderFinishedHandler OnModLoaderFinished;
+    }
+    /// <summary>
+    /// UI对话框关闭侦听器
+    /// </summary>
+    public class OnDialolgClosedLinister : EventLinster
+    {
+        public OnDialolgClosedLinister(OnDialolgClosedHandler h) : base("UIDialogClosed")
+        {
+            OnDialolgClosed += h;
+        }
+
+        public override void OnEvent(object sender, params object[] par)
+        {
+            base.OnEvent(sender, par);
+            if (OnDialolgClosed != null)
+                OnDialolgClosed((int)par[0], (bool)par[1], (bool)par[2]);
+        }
+
+        public delegate void OnDialolgClosedHandler(int dlgid, bool clickedok,bool clickedthird);
+
+        public event OnDialolgClosedHandler OnDialolgClosed;
+    }
 }

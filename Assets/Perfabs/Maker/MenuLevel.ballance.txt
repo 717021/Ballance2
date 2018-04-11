@@ -1,0 +1,12 @@
+[BaseInformation]
+ModAuthor=Ballance
+ModName=MenuLevel
+ModType=Mod
+ModDepends=
+ModEntry=
+[Registers]
+RegisterGamePart=MenuLevel
+
+[MenuLevel]
+MenuLevel.AutoInitObject=MenuLevel.prefab
+MenuLevel.PartType=MenuLevelPart

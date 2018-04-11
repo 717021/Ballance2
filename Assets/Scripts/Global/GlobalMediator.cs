@@ -6,29 +6,66 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /*
- * 代码说明：游戏核心模块，中介者模式（Mediator）执行器。
- * 
- * 
- * 
-
- * 
+ * 代码说明：游戏核心模块，游戏主管理模块、中介者模式（Mediator）执行器。
  * 
  * 2017.10.13
 */
 
 /// <summary>
-/// 中介者。
+/// 中介者。游戏主管理模块
 /// </summary>
 public static class GlobalMediator
 {
     private static bool isExiting = false;
+    private static bool isUILoadFinished = false;
 
     /// <summary>
     /// 初始化
     /// </summary>
     public static void GlobalMediatorInitialization()
     {
+        StaticValues.StaticValuesInit();
+        CommandManager.RegisterCommand("exit", ExitCommandReceiverHandler, "退出游戏");
+        CommandManager.RegisterCommand("nodebug", NoDebugCommandReceiverHandler, "退出调试模式");
+    }
+    public static void SetCommandManager(CommandManager commandManager)
+    {
+        if (commandManager != null && CommandManager == null)
+            CommandManager = commandManager;
+    }
+    public static void SetCommandManagerUnavailable(CommandManager commandManager)
+    {
+        if (commandManager != null && CommandManager == commandManager)
+            CommandManager = null;
+    }
+    public static void SetUIManager(UIManager uIManager)
+    {
+        if (uIManager != null && UIManager == null)
+            UIManager = uIManager;
+    }
+    public static void SetUIManagerUnavailable(UIManager uIManager)
+    {
+        if (uIManager != null && UIManager == uIManager)
+        {
+            UIManager = null;
+            isUILoadFinished = false;
+        }
+    }
+    public static void SetUILoadFinished()
+    {
+        isUILoadFinished = true;
+    }
 
+    private static bool ExitCommandReceiverHandler(string[] pararms)
+    {
+        ExitGame();
+        return true;
+    }
+    private static bool NoDebugCommandReceiverHandler(string[] pararms)
+    {
+        GlobalSettings.Debug = false;
+        if (CommandManager != null) CommandManager.NoDebug();
+        return true;
     }
 
     #region Action
@@ -105,7 +142,7 @@ public static class GlobalMediator
     private static Dictionary<string, List<EventLinster>> events = new Dictionary<string, List<EventLinster>>();
 
     /// <summary>
-    /// 注册事件侦听器
+    /// 注册事件侦听器 注意：事件使用完毕（比如object已经释放，请使用UnRegisterEventLinster取消注册事件侦听器，否则会发生错误）
     /// </summary>
     /// <param name="eventLinster">要注册的事件侦听器</param>
     /// <returns>返回要注册的事件侦听器</returns>
@@ -194,6 +231,27 @@ public static class GlobalMediator
     }
     #endregion
 
+    /// <summary>
+    /// 获取 指令管理器
+    /// </summary>
+    public static CommandManager CommandManager
+    {
+        get;private set;
+    }
+    /// <summary>
+    /// 获取 我的界面管理器
+    /// </summary>
+    public static UIManager UIManager
+    {
+        get; private set;
+    }
+    /// <summary>
+    /// 获取 UI 是否加载完成
+    /// </summary>
+    public static bool IsUILoadFinished()
+    {
+       return isUILoadFinished; 
+    }
 
     /// <summary>
     /// 获取游戏是否正在退出
@@ -222,7 +280,10 @@ public static class GlobalMediator
         Time.timeScale = 0;
         GlobalMediator.DispatchEvent("GameExiting", null);
 
+        CommandManager.ExitGameClear();
+
         GlobalModLoader.ExitGameClear();
+        GlobalDyamicModManager.ExitClear();
         GlobalMediator.ExitGameClear();
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

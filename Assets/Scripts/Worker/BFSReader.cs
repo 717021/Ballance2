@@ -9,7 +9,6 @@ using UnityEngine;
  * 语法：(均为英文输入法的字符)
  *     属性名=属性值1;属性值2;属性值3...
  *     属性名=属性值1:属性值1子2:属性值1子3;属性值2
- *     操作(参数1,参数2,参数3...)
  *     [注释]
  *     :注释
  * 
@@ -42,12 +41,13 @@ namespace Assets.Scripts.Worker
         {
             dictionaryProps.Clear();
             dictionaryProps = null;
-            dictionaryActions.Clear();
-            dictionaryActions = null;
         }
 
+        public Dictionary<string, string> Props { get { return dictionaryProps; } }
+
         private Dictionary<string, string> dictionaryProps = new Dictionary<string, string>();
-        private Dictionary<string, string[]> dictionaryActions = new Dictionary<string, string[]>();
+        private List<string> lines = new List<string>();
+        private bool isReadLine = false;
 
         private void AnalysisString(string str)
         {
@@ -55,49 +55,54 @@ namespace Assets.Scripts.Worker
             string[] r = str.Split('\n');
             for (int i = 0; i < r.Length; i++)
             {
+                if (r[i].Contains("\r")) r[i] = r[i].Replace("\r", "");
                 if (r[i] != "")
                 {
-                    if (!r[i].StartsWith("[") && !r[i].StartsWith(":"))
-                    {
-                        //解析 props
-                        if (r[i].Contains("="))
+                    if (!r[i].StartsWith(":"))
+                        if (!r[i].StartsWith("["))
                         {
-                            string[] r1 = r[i].Split('=');
-                            if (!dictionaryProps.ContainsKey(r1[0]))
-                                dictionaryProps.Add(r1[0], r1[1]);
-                        }
-                        //解析 action
-                        else if (r[i].Contains("(") && r[i].EndsWith(")"))
-                        {
-                            int iss = r[i].IndexOf('('), iee = r[i].IndexOf(')');
-                            string actName = r[i].Substring(0, iss);
-                            string actProp = r[i].Substring(iss + 1, iee);
-                            if (actProp.Contains(";"))
+                            if (isReadLine)
                             {
-                                if (!dictionaryActions.ContainsKey(actName))
-                                    dictionaryActions.Add(actName, actProp.Split(';'));
+                                lines.Add(r[i]);
                             }
-                            else if (!dictionaryActions.ContainsKey(actName))
-                                dictionaryActions.Add(actName, new string[] { actProp });
-                        }
-                        /*else if (!r[i].Contains(";"))
-                        {
-                            string[] r2 = r[i].Split('\n');
-                            for (int i1 = 0; i1 < r2.Length; i1++)
+                            else
                             {
-                                if (r2[i1] != "")
+                                //解析 props
+                                if (r[i].Contains("="))
                                 {
-                                    if (r2[i1].Contains("="))
-                                    {
-                                        string[] r3 = r2[i1].Split('=');
-                                        if (!dictionaryProps.ContainsKey(r3[0]))
-                                            dictionaryProps.Add(r3[0], r3[1]);
-                                    }
+                                    string[] r1 = r[i].Split('=');
+                                    if (!dictionaryProps.ContainsKey(r1[0]))
+                                        dictionaryProps.Add(r1[0], r1[1]);
+                                    else dictionaryProps[r1[0]] = dictionaryProps[r1[0]] + ";" + r1[1];
                                 }
+                                /*else if (!r[i].Contains(";"))
+                                {
+                                    string[] r2 = r[i].Split('\n');
+                                    for (int i1 = 0; i1 < r2.Length; i1++)
+                                    {
+                                        if (r2[i1] != "")
+                                        {
+                                            if (r2[i1].Contains("="))
+                                            {
+                                                string[] r3 = r2[i1].Split('=');
+                                                if (!dictionaryProps.ContainsKey(r3[0]))
+                                                    dictionaryProps.Add(r3[0], r3[1]);
+                                            }
+                                        }
+                                    }
+                                }*/
                             }
-                        }*/
-                    }
+                        }
+                        else
+                        {
+                            string astr = r[i].Substring(1, r[i].Length - 2);
+                            if (astr == "LINEREAD")
+                                isReadLine = true;
+                            else if (astr == "ENDLINEREAD")
+                                isReadLine = false;
+                        }
                 }
+
             }
         }
 
@@ -109,15 +114,6 @@ namespace Assets.Scripts.Worker
         public bool HasProperty(string propname)
         {
             return dictionaryProps.ContainsKey(propname);
-        }
-        /// <summary>
-        /// 查询文档中是否有定义某个操作。
-        /// </summary>
-        /// <param name="actname">操作名字。</param>
-        /// <returns></returns>
-        public bool HasAction(string actname)
-        {
-            return dictionaryActions.ContainsKey(actname);
         }
         /// <summary>
         /// 获取某个属性的值。
@@ -137,6 +133,8 @@ namespace Assets.Scripts.Worker
         /// <returns></returns>
         public string[] GetPropertyValueChildValue(string propValue)
         {
+            if (!propValue.Contains(";"))
+                return new string[] { propValue };
             return propValue.Split(';');
         }
         /// <summary>
@@ -146,18 +144,13 @@ namespace Assets.Scripts.Worker
         /// <returns></returns>
         public string[] GetPropertyValueChildValue2(string propValue)
         {
+            if (!propValue.Contains(":"))
+                return new string[] { propValue };
             return propValue.Split(':');
         }
-        /// <summary>
-        /// 获取某个操作的值。
-        /// </summary>
-        /// <param name="actname">操作名字。</param>
-        /// <returns></returns>
-        public string[] GetActionValue(string actname)
+        public string[] GetLineAllItems()
         {
-            if(dictionaryActions.ContainsKey(actname))
-                return dictionaryActions[actname];
-            return null;
+            return lines.ToArray();
         }
     }
 }

@@ -6,4 +6,7 @@ Ballance.csproj
 Ballance.sln
 Ballance2.csproj
 Ballance2.sln
-.vs
+.vs/
+Debug/Ballance2_Data/
+UnityPlayer.dll
+Ballance2.exe

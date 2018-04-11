@@ -1,0 +1,12 @@
+[BaseInformation]
+ModAuthor=Ballance
+ModName=WorkerPart
+ModType=Mod
+ModDepends=
+ModEntry=
+[Registers]
+RegisterGamePart=SoundManager
+
+[MenuLevel]
+SoundManager.AutoInitObject=SoundManager.prefab
+SoundManager.PartType=GamePart
