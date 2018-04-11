@@ -8,7 +8,6 @@ using UnityEngine.UI;
 public class Intro : MonoBehaviour
 {
     public RectTransform ImageProgress;
-    public Image ImageMaskAll;
     public Image ImageLogo;
     public Image ImageCloud1;
     public Image ImageCloud2;
@@ -25,7 +24,6 @@ public class Intro : MonoBehaviour
     private float alpha = 1;
     private bool errored = false;
     private bool finished = false;
-    private bool allFadeout = false;
 
     void ErrExitButton_Clicked()
     {
@@ -87,20 +85,6 @@ public class Intro : MonoBehaviour
                     StartCoroutine(InitMenu());
             }
         }
-        else if (allFadeout)
-        {
-            if (alpha < 1)
-            {
-                alpha += 1 * Time.deltaTime;
-                ImageMaskAll.color = new Color(0, 0, 0, alpha);
-            }
-            else
-            {
-                alpha = 1;
-                ImageMaskAll.color = new Color(0, 0, 0, alpha);                
-                allFadeout = false;
-            }
-        }
     }
     IEnumerator GameInit()
     {
@@ -115,8 +99,8 @@ public class Intro : MonoBehaviour
     }
     IEnumerator InitMenu()
     {
-        alpha = 0;
-        allFadeout = true;
+        GlobalMediator.UIManager.UIFadeHlper.FadeSpeed = 2;
+        GlobalMediator.UIManager.UIFadeHlper.FadeIn();
         yield return new WaitForSeconds(1f);
         yield return  SceneManager.LoadSceneAsync(NextScense, LoadSceneMode.Additive);
         gameObject.SetActive(false);
