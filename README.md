@@ -1,11 +1,7 @@
 # Ballance2
 Ballance Rebulid 平衡球重制版
-
-[![Build Status](https://github.com/717021/Ballance2)](https://github.com/717021/Ballance2)
-
-</br>
+/br>
 ![image](https://github.com/717021/Ballance2/blob/master/Assets/Textures/splash_app.bmp)
- 
 简介
 -------
 这是 Ballance 的多平台重制项目，详情请参考[百度Ballance吧的帖子](https://tieba.baidu.com/p/5268786027).
