@@ -748,7 +748,7 @@ public class UIManager : MonoBehaviour
     {
         UIMaker = new StandardUIMaker(this);
         GlobalMediator.SetUIManager(this);
-        if(GlobalSettings.StartInIntro) dbgCam.SetActive(false);
+        if(!GlobalSettings.StartInIntro) dbgCam.SetActive(true);
         //test();
         if(isBlack)
             UIFadeHlper.Alpha = 1;

@@ -294,6 +294,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\GameCore\Ball.cs" />
+    <Compile Include="Assets\Scripts\GameCore\BallsManager.cs" />
+    <Compile Include="Assets\Scripts\GameCore\LevelManager.cs" />
     <Compile Include="Assets\Scripts\Global\Action.cs" />
     <Compile Include="Assets\Scripts\Global\Event.cs" />
     <Compile Include="Assets\Scripts\Global\GameActions.cs" />
@@ -309,19 +312,25 @@
     <Compile Include="Assets\Scripts\Global\StaticLoader\StaticLoader.cs" />
     <Compile Include="Assets\Scripts\Global\StaticValues.cs" />
     <Compile Include="Assets\Scripts\Intro.cs" />
+    <Compile Include="Assets\Scripts\LevelLoader\LevelLoader.cs" />
     <Compile Include="Assets\Scripts\MenuLevel.cs" />
+    <Compile Include="Assets\Scripts\NewBehaviourScript.cs" />
+    <Compile Include="Assets\Scripts\Worker\BallPiecesController.cs" />
     <Compile Include="Assets\Scripts\Worker\BFSReader.cs" />
+    <Compile Include="Assets\Scripts\Worker\KeyListener.cs" />
     <Compile Include="Assets\Scripts\Worker\RotateCam.cs" />
     <Compile Include="Assets\Scripts\Worker\SkyMaker.cs" />
     <Compile Include="Assets\Scripts\Worker\StringSpliter.cs" />
     <Compile Include="Assets\Scripts\Worker\UI\DialogUI.cs" />
     <Compile Include="Assets\Scripts\Worker\UI\DisplayInfoUi.cs" />
+    <Compile Include="Assets\Scripts\Worker\UI\DUIDrag.cs" />
     <Compile Include="Assets\Scripts\Worker\UI\DUIRayIgnore.cs" />
     <Compile Include="Assets\Scripts\Worker\UI\EventTriggerListener.cs" />
     <Compile Include="Assets\Scripts\Worker\UI\FadeHlper.cs" />
     <Compile Include="Assets\Scripts\WorkerPart\SoundsManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Perfabs\Maker\LevelMake\level1.ballance.txt" />
     <None Include="Assets\Perfabs\Maker\MenuLevel.ballance.txt" />
     <None Include="Assets\Perfabs\Maker\WorkerPart.ballance.txt" />
     <None Include="Assets\Textures\RimLighting.shader" />

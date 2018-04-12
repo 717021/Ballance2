@@ -102,6 +102,7 @@ public class Intro : MonoBehaviour
         GlobalMediator.UIManager.UIFadeHlper.FadeSpeed = 2;
         GlobalMediator.UIManager.UIFadeHlper.FadeIn();
         yield return new WaitForSeconds(1f);
+
         yield return  SceneManager.LoadSceneAsync(NextScense, LoadSceneMode.Additive);
         gameObject.SetActive(false);
     }

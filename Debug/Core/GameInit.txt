@@ -1,9 +1,6 @@
 TYPE=win
 COREVER=1.0.0-Ballance2
 [LINEREAD]
-:GameCore.dll;MustLoad;Code
-:SoundManager.ballance;MustLoad;Function
-:menu/MenuLevel.ballance;MustLoad;Function
 assets/skys_*TYPE*.unity3d;SampleLoad;Resource
 assets/musics_*TYPE*.unity3d;SampleLoad;Resource
 assets/sounds_*TYPE*.unity3d;SampleLoad;Resource

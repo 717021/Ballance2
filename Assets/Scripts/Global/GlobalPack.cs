@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Worker;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -83,23 +84,49 @@ namespace Assets.Scripts.Global
     /// </summary>
     public class GlobalPack : IDisposable
     {
-        public GlobalPack()
+        private string name = "";
+        private string path = "";
+        private BFSReader describeFile = null;
+
+        public GlobalPack(string path)
         {
             AssetsPool = new Dictionary<string, GameObject>();
+            this.path = path;
         }
 
         /// <summary>
+        /// 包 描述文件
+        /// </summary>
+        public BFSReader DescribeFile
+        {
+            get { return describeFile; }
+            set
+            {
+                if (describeFile == null)
+                    describeFile = value;
+            }
+        }
+        /// <summary>
         /// 作者名称
         /// </summary>
-        public string AuthorName = "";
+        public string AuthorName { get; set; }
         /// <summary>
         /// 名称
         /// </summary>
-        public string Name = "";
+        public string Name
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(name))
+                    return Path;
+                else return name;
+            }
+            set { name = value; }
+        }
         /// <summary>
         /// 路径
         /// </summary>
-        public string Path = "";
+        public string Path { get { return path; } }
         /// <summary>
         /// 基本 Assets
         /// </summary>
@@ -167,6 +194,8 @@ namespace Assets.Scripts.Global
         /// </summary>
         public void Dispose()
         {
+            describeFile.Dispose();
+            describeFile = null;
             AssetsPool.Clear();
             AssetsPool = null;
             if (Base != null)

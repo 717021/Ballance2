@@ -68,6 +68,50 @@ public static class GlobalMediator
         return true;
     }
 
+    #region Logs
+
+    /// <summary>
+    /// 输出信息到控制台
+    /// </summary>
+    /// <param name="s">信息</param>
+    public static void Log(string s)
+    {
+        if (CommandManager != null)
+            CommandManager.Log(s);
+        else Debug.Log(s);
+    }
+    /// <summary>
+    /// 输出错误信息到控制台
+    /// </summary>
+    /// <param name="s">信息</param>
+    public static void LogErr(string s)
+    {
+        if (CommandManager != null)
+            CommandManager.LogErr(s);
+        else Debug.LogError(s);
+    }
+    /// <summary>
+    /// 输出警告信息到控制台
+    /// </summary>
+    /// <param name="s">信息</param>
+    public static void LogWarn(string s)
+    {
+        if (CommandManager != null)
+            CommandManager.LogWarn(s);
+        else Debug.LogWarning(s);
+    }
+    /// <summary>
+    /// 输出信息到控制台
+    /// </summary>
+    /// <param name="s">信息</param>
+    public static void LogInfo(string s)
+    {
+        if (CommandManager != null)
+            CommandManager.LogInfo(s);
+        else Debug.Log(s);
+    }
+    #endregion
+
     #region Action
 
     /// <summary>
@@ -149,7 +193,7 @@ public static class GlobalMediator
     public static EventLinster RegisterEventLinster(EventLinster eventLinster)
     {
         string evtName = eventLinster.eventName;
-        if (evtName == ""|| eventLinster==null) return null;
+        if (evtName == "" || eventLinster == null) return null;
         List<EventLinster> list = null;
         if (!events.ContainsKey(evtName))
         {
@@ -236,7 +280,7 @@ public static class GlobalMediator
     /// </summary>
     public static CommandManager CommandManager
     {
-        get;private set;
+        get; private set;
     }
     /// <summary>
     /// 获取 我的界面管理器
@@ -250,7 +294,7 @@ public static class GlobalMediator
     /// </summary>
     public static bool IsUILoadFinished()
     {
-       return isUILoadFinished; 
+        return isUILoadFinished;
     }
 
     /// <summary>
@@ -278,6 +322,9 @@ public static class GlobalMediator
     {
         isExiting = true;
         Time.timeScale = 0;
+
+        Application.runInBackground = true;
+
         GlobalMediator.DispatchEvent("GameExiting", null);
 
         CommandManager.ExitGameClear();
@@ -291,5 +338,76 @@ public static class GlobalMediator
         Application.Quit();
 #endif
     }
+
+    #region GameServices
+
+
+    private static LevelManager levelManager;
+    private static LevelLoader levelLoader;
+    private static BallsManager ballsManager;
+
+    public static void SetSystemServices(GameServices g, object o)
+    {
+        switch (g)
+        {
+            case GameServices.LevelLoader:
+                if (o is LevelLoader)
+                    levelLoader = o as LevelLoader;
+                break;
+            case GameServices.LevelManager:
+                if (o is LevelManager)
+                    levelManager = o as LevelManager;
+                break;
+            case GameServices.SectorManager:
+                break;
+            case GameServices.ICManager:
+                break;
+            case GameServices.BallsManager:
+                if (o is BallsManager)
+                    ballsManager = o as BallsManager;
+                break;
+            case GameServices.AnimTranfo:
+                break;
+        }
+    }
+    /// <summary>
+    /// 获取游戏核心部件
+    /// </summary>
+    /// <param name="g"></param>
+    /// <returns></returns>
+    public static object GetSystemServices(GameServices g)
+    {
+        switch (g)
+        {
+            case GameServices.LevelLoader:
+                return levelLoader;
+            case GameServices.LevelManager:
+                return levelManager;
+            case GameServices.SectorManager:
+                break;
+            case GameServices.ICManager:
+                break;
+            case GameServices.BallsManager:
+                return ballsManager;
+            case GameServices.AnimTranfo:
+                break;
+        }
+        return null;
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// 游戏 核心模块 枚举
+/// </summary>
+public enum GameServices
+{
+    LevelLoader,
+    LevelManager,
+    SectorManager,
+    ICManager,
+    BallsManager,
+    AnimTranfo,
 }
 

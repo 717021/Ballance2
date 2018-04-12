@@ -118,11 +118,11 @@ public class DisplayInfoUi : MonoBehaviour
     {
         if(b)
         {
-            pos.anchoredPosition = new Vector2(pos.anchoredPosition.x, -166.5f);
+            pos.anchoredPosition = new Vector2(pos.anchoredPosition.x, -265f);
         }
         else
         {
-            pos.anchoredPosition = new Vector2(pos.anchoredPosition.x, -105.5f);
+            pos.anchoredPosition = new Vector2(pos.anchoredPosition.x, -221.9f);
         }
     }
 }

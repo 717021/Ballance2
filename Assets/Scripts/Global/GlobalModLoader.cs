@@ -24,8 +24,8 @@ public static class GlobalModLoader
     {
         LoadedPacks = new List<GlobalPack>();
         RegisteredGameParts = new List<GlobalGamePart>();
-        CommandManager.RegisterCommand("gpack", ViewPacksCommandReceiverHandler, "查看 已加载的包", "[simple] / [detals][GlobalPack name]");
-        CommandManager.RegisterCommand("gpart", ViewGamePartsCommandReceiverHandler, "查看 已注册的部件", "[simple] / [detals][GlobalGamePart name]");
+        CommandManager.RegisterCommand("gpack", ViewPacksCommandReceiverHandler, "查看 已加载的包", "[all] / [detals/assets/assets2][GlobalPack name]");
+        CommandManager.RegisterCommand("gpart", ViewGamePartsCommandReceiverHandler, "查看 已注册的部件", "[all] / [detals/assets/assets2][GlobalGamePart name]");
     }
 
     //查看 已加载的包 指令接收器
@@ -35,7 +35,7 @@ public static class GlobalModLoader
         {
             switch(pararms[0])
             {
-                case "simple":
+                case "all":
                     GlobalMediator.CommandManager.OutPut("已加载的包 <size=9>共" + LoadedPacks.Count + "个</size>");
                     foreach (GlobalPack p in LoadedPacks)
                         GlobalMediator.CommandManager.OutPut(p.Name + " <color=#1177ffff>作者</color> <color=#66eeeeff>" + p.AuthorName + "</color> <color=#1177ffff>加载状态</color> " + p.GetLoadStateStr() + "  [" + p.Path + "]");
@@ -117,7 +117,7 @@ public static class GlobalModLoader
         {
             switch (pararms[0])
             {
-                case "simple":
+                case "all":
                     GlobalMediator.CommandManager.OutPut("已注册的部件 <size=9>共" + LoadedPacks.Count + "个</size>");
                     foreach (GlobalGamePart p in RegisteredGameParts)
                         GlobalMediator.CommandManager.OutPut(p.Name +
@@ -380,7 +380,7 @@ public static class GlobalModLoader
     {
         if (staticMod!=null)
         {
-            GlobalPack p = new GlobalPack();
+            GlobalPack p = new GlobalPack(staticMod.Name);
             p.LoadState = GlobalPackLoadState.Loading;
             if (staticMod.DescriptionFile != null)
             {
@@ -401,12 +401,11 @@ public static class GlobalModLoader
         yield return www;
         if (string.IsNullOrEmpty(www.error))
         {
-            GlobalPack p = new GlobalPack();
+            GlobalPack p = new GlobalPack(path);
             p.LoadState = GlobalPackLoadState.Loading;
             p.Base = www.assetBundle;
             if (www.assetBundle != null)
             {
-                p.Path = path;
                 p.Name = Path.GetFileNameWithoutExtension(path);
 
                 string[] a = p.Base.GetAllAssetNames();
@@ -474,6 +473,8 @@ public static class GlobalModLoader
             }
         }
         LoadedPacks.Add(p);
+        p.DescribeFile = b;
+
         string entry = b.GetPropertyValue("ModEntry");
         if (!string.IsNullOrEmpty(entry))
         {
@@ -536,9 +537,8 @@ public static class GlobalModLoader
         yield return www;
         if (string.IsNullOrEmpty(www.error))
         {
-            GlobalPack p = new GlobalPack();
+            GlobalPack p = new GlobalPack(path);
             p.Base = www.assetBundle;
-            p.Path = path;
             p.Name = Path.GetFileNameWithoutExtension(path);
             LoadedPacks.Add(p);
             if (p.Base != null)
@@ -669,6 +669,7 @@ public static class GlobalModLoader
                 gameInitFeedBack(false, "GameInit 目标版本版本不符。\n请尝试重新安装Ballance2。\n内核版本：" + StaticValues.GameVersion + "\n目标版本：" + version, 0.3f, true);
             else
             {
+                Application.runInBackground = true;
                 string[] strs = br.GetLineAllItems();
                 allcount = strs.Length;
                 foreach (string s in strs)

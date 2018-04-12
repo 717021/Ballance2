@@ -13,9 +13,25 @@ public class InitializationMgr : MonoBehaviour
     /// </summary>
     public GlobalGamePartType InitType = GlobalGamePartType.None;
 
+    /// <summary>
+    /// 加载器是否正在加载
+    /// </summary>
+    public static bool IsLoading
+    {
+        get; private set;
+    }
+    /// <summary>
+    /// 加载器是否加载完成
+    /// </summary>
+    public static bool IsInitializationMgrInitializefinished()
+    {
+        return !IsLoading;
+    }
+
     // Use this for initialization
     void Start()
     {
+        IsLoading = true;
         if (InitType != GlobalGamePartType.GamePart && InitType != GlobalGamePartType.StaticPart)
             StartCoroutine(Loader());
     }
@@ -44,6 +60,8 @@ public class InitializationMgr : MonoBehaviour
             if (gp.Type == InitType)
                 Load(gp);
         }
+
+        IsLoading = false;
     }
 
     private void Load(GlobalGamePart gp)

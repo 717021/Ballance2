@@ -33,6 +33,8 @@ public class MenuLevel : MonoBehaviour
 
     void Start()
     {
+        Application.runInBackground = false;
+
         onDialolgClosedLinister = GlobalMediator.RegisterEventLinster(new OnDialolgClosedLinister(UIDialogOK));
 
         SkyboxMain = gameObject.transform.Find("I_Camera").gameObject.GetComponent<Skybox>();
@@ -223,7 +225,9 @@ public class MenuLevel : MonoBehaviour
         dropdownQuality.value = GlobalSettings.GetCurrentQualitySettings();
         dropdownQuality.onValueChanged.AddListener(OnQualityDropDownValueChanged);
 
+#if UNITY_STANDALONE
         GlobalMediator.UIManager.UIMaker.RegisterMenuPageText("MainMenuUI", "Main.PageSettings.Display", "在游戏启动时(双击exe时) 按住“Alt”键也可以设置");
+#endif
         GlobalMediator.UIManager.UIMaker.RegisterMenuPageButton("MainMenuUI", "Main.PageSettings.Display", "返回", "Back", ButtonBackSetDisplay_OnClicked, 10);
         #endregion
 
@@ -466,8 +470,7 @@ public class MenuLevel : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
 
-        //LevelLoader.NeedLoadLevelPath = level;
-        //LevelLoader.NeedLoad = true;
-        //LevelLoader.StartLoadLevel(this);
+        LevelLoader.SetLoaderShouldLoad(level);
+        LevelLoader.StartLoadLevel(this);
     }
 }

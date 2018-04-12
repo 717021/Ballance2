@@ -21,9 +21,11 @@ public class CommandManager : MonoBehaviour
     public DisplayInfoUi DisplayInfoUi;
     public RectTransform panelCommandRectTransform;
     public RectTransform textLinesRectTransform;
-    public GameObject panelCommand;
+    public GameObject panelCommand, textShowCmd;
     public Text textLines, textTips;
     public InputField inputCommand;
+    public DUIDrag dragCommand;
+
 
     /// <summary>
     /// 获取CommandManager实例，可能为空
@@ -46,6 +48,7 @@ public class CommandManager : MonoBehaviour
                 DisplayInfoUi.SetPos(CommandShow);
                 if (value)
                 {
+                    textShowCmd.SetActive(false);
                     panelCommand.SetActive(true);
                     commandShowed2Count = 0;
                     commandDisplays2.Clear();
@@ -54,6 +57,7 @@ public class CommandManager : MonoBehaviour
                 else
                 {
                     panelCommand.SetActive(false);
+                    textShowCmd.SetActive(true);
                     textLines.text = "";
                 }
             }
@@ -78,7 +82,10 @@ public class CommandManager : MonoBehaviour
     private string commandShowFilter = "All";
     private bool commandShow = true;
     private int sx = 0;
-    //private int sx2 = 0;
+    private int sx2 = 0;
+    private int sxs = 30;
+    private bool scdirect = false;
+    private bool scmouse = false;
     private int commandShowPos = 0;
     private int commandShowed2Count = 0;
     private class Dspl2
@@ -105,9 +112,9 @@ public class CommandManager : MonoBehaviour
     private void SetCommandTip(string s)
     {
         textTips.text = "<color=#66eeeeff>Ctrl+Shift</color> <color=#1177ffff>或设置更改筛选模式：</color><color=#ee11ee>" + s + "</color>" +
-            "<color=#66eeeeff>PageUP/PageDown/鼠标滑动</color> <color=#1177ffff>上移下移</color>" +
+            "<color=#66eeeeff>PageUP/PageDown/手指拖动</color> <color=#1177ffff>上移下移</color>" +
             "<color=#0077eeff>输入指令回车后执行指令</color>" +
-            "<color=#66eeeeff>F12</color> <color=#1177ffff>关闭指令窗口</color>";
+            "<点击         或按<color=#66eeeeff>F12</color> <color=#66aaff>关闭指令窗口</color>";
     }
     private void SetCommandShowFilter(string s)
     {
@@ -142,6 +149,18 @@ public class CommandManager : MonoBehaviour
             DisplayCommand();
         }
 
+    }
+    private void CommandShowAnyPos(int i)
+    {
+
+        if (i < commandDisplays.Count - (MAX_DISPLAY_ITEM - 1))
+        {
+            if (i > 0)
+                commandShowPos = i;
+            else commandShowPos = 0;
+        }
+        else commandShowPos = commandDisplays.Count - (MAX_DISPLAY_ITEM - 1);
+        DisplayCommand();
     }
     private void CommandShowHome()
     {
@@ -466,6 +485,7 @@ public class CommandManager : MonoBehaviour
             canUseCommandTool = false;
             panelCommand.SetActive(false);
             DisplayInfoUi.gameObject.SetActive(false);
+            textShowCmd.SetActive(false);
             textLines.text = "";
         }
     }
@@ -475,6 +495,7 @@ public class CommandManager : MonoBehaviour
         {
             canUseCommandTool = true;
             DisplayInfoUi.gameObject.SetActive(true);
+            textShowCmd.SetActive(true);
         }
     }
 
@@ -530,6 +551,15 @@ public class CommandManager : MonoBehaviour
         }
 
     }
+    private void BtnShowCmd_OnClicked()
+    {
+        CommandShow = true;
+    }
+    private void BtnHideCmd_OnClicked()
+    {
+        CommandShow = false;
+    }
+    
 
     private void Start()
     {
@@ -548,6 +578,9 @@ public class CommandManager : MonoBehaviour
         RegisterCommand("help", HelpCommandReceiverHandler, "查看指令帮助");
         RegisterCommand("output", OutPutCommandReceiverHandler, "输出");
         RegisterCommand("cmdline", SetLineCommandReceiverHandler, "设置控制台显示消息数量", "[count (int)]");
+
+        /*for (int i = 0; i < 50; i++)
+            OutPut(i.ToString() + "   xxx");*/
     }
     private void Update()
     {
@@ -586,19 +619,19 @@ public class CommandManager : MonoBehaviour
             else if (Input.GetKeyUp(KeyCode.F12) && isF1ButtonDown) isF1ButtonDown = false;
             else if (commandShow)
             {
-                if (Input.GetKeyDown(KeyCode.PageDown) && !isPageDownButtonDown)
+                if (Input.GetKeyDown(KeyCode.PageDown) && !isPageDownButtonDown) isPageDownButtonDown = true;
+                else if (Input.GetKeyUp(KeyCode.PageDown) && isPageDownButtonDown)
                 {
-                    isPageDownButtonDown = true;
-                    CommandShowDown();
+                    isPageDownButtonDown = false;
+                    sxs = 30;
                 }
-                else if (Input.GetKeyUp(KeyCode.PageDown) && isPageDownButtonDown) isPageDownButtonDown = false;
 
-                else if (Input.GetKeyDown(KeyCode.PageUp) && !isPageUpButtonDown)
+                else if (Input.GetKeyDown(KeyCode.PageUp) && !isPageUpButtonDown) isPageUpButtonDown = true;
+                else if (Input.GetKeyUp(KeyCode.PageUp) && isPageUpButtonDown)
                 {
-                    isPageUpButtonDown = true;
-                    CommandShowUp();
+                    isPageUpButtonDown = false;
+                    sxs = 30;
                 }
-                else if (Input.GetKeyUp(KeyCode.PageUp) && isPageUpButtonDown) isPageUpButtonDown = false;
 
                 else if (Input.GetKeyDown(KeyCode.Home) && !isHoneButtonDown)
                 {
@@ -620,6 +653,52 @@ public class CommandManager : MonoBehaviour
                     NextCommandShowFilter();
                 }
                 else if (isSCButtonDown && ((Input.GetKeyUp(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.LeftShift)) || Input.GetKeyUp(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.RightShift))) isSCButtonDown = false;
+
+                else if (dragCommand.isDrag)
+                {
+                    if (dragCommand.isDraged)
+                    {
+                        float y = dragCommand.DragOffist.y;
+                        if (y != 0)
+                        {
+                            float ya = Mathf.Abs(y);
+                            if (ya > 25) sxs = 10;
+                            else if (ya > 20) sxs = 20;
+                            else if (ya > 15) sxs = 30;
+                            else if (ya > 10) sxs = 40;
+                            else if (ya > 5) sxs = 50;
+                            else sxs = 60;
+                            scdirect = y < 0;
+                            scmouse = true;
+                        }
+                        else scmouse = false;
+                    }
+                    else scmouse = false;
+                }
+
+                if (sx2 < sxs) sx2++;
+                else
+                {
+                    sx2 = 0;
+                    if (isPageDownButtonDown)
+                    {
+                        CommandShowDown();
+                        if (sxs > 5)
+                            sxs -= 5;
+                    }
+                    else if (isPageUpButtonDown)
+                    {
+                        CommandShowUp();
+                        if (sxs > 5)
+                            sxs -= 5;
+                    }
+                    else if (scmouse)
+                    {
+                        if (scdirect) CommandShowAnyPos(commandShowPos - 1);
+                        else CommandShowAnyPos(commandShowPos + 1);
+                        scmouse = false;
+                    }
+                }
             }
             else
             {

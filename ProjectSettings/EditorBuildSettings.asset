@@ -14,3 +14,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/UI.unity
     guid: db374d837a848ca48bdff78e1dbe3520
+  - enabled: 1
+    path: Assets/Scenes/LevelLoader.unity
+    guid: e3d0a333442667340bb99472f4eff695
+  - enabled: 1
+    path: Assets/Scenes/Level.unity
+    guid: 5812b71a635098e42b26adca446e6532
+  - enabled: 1
+    path: Assets/Scenes/Ball.unity
+    guid: 6346ffd1ca27ad349be03b14d7db69a8
