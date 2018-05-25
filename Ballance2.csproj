@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>2017.3.1f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -294,6 +296,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\GameCore\AnimTranfo.cs" />
+    <Compile Include="Assets\Scripts\GameCore\AnimTranfoDef.cs" />
+    <Compile Include="Assets\Scripts\GameCore\AnimTranfoMgr.cs" />
     <Compile Include="Assets\Scripts\GameCore\Ball.cs" />
     <Compile Include="Assets\Scripts\GameCore\BallsManager.cs" />
     <Compile Include="Assets\Scripts\GameCore\LevelManager.cs" />
@@ -301,6 +306,7 @@
     <Compile Include="Assets\Scripts\Global\Event.cs" />
     <Compile Include="Assets\Scripts\Global\GameActions.cs" />
     <Compile Include="Assets\Scripts\Global\GameEvents.cs" />
+    <Compile Include="Assets\Scripts\Global\GlobalAssetPool.cs" />
     <Compile Include="Assets\Scripts\Global\GlobalDyamicModManager.cs" />
     <Compile Include="Assets\Scripts\Global\GlobalMediator.cs" />
     <Compile Include="Assets\Scripts\Global\GlobalModLoader.cs" />
@@ -316,10 +322,13 @@
     <Compile Include="Assets\Scripts\MenuLevel.cs" />
     <Compile Include="Assets\Scripts\NewBehaviourScript.cs" />
     <Compile Include="Assets\Scripts\Worker\BallPiecesController.cs" />
+    <Compile Include="Assets\Scripts\Worker\BFLevelReader.cs" />
+    <Compile Include="Assets\Scripts\Worker\BFModReader.cs" />
     <Compile Include="Assets\Scripts\Worker\BFSReader.cs" />
     <Compile Include="Assets\Scripts\Worker\KeyListener.cs" />
     <Compile Include="Assets\Scripts\Worker\RotateCam.cs" />
     <Compile Include="Assets\Scripts\Worker\SkyMaker.cs" />
+    <Compile Include="Assets\Scripts\Worker\StoragePathManager.cs" />
     <Compile Include="Assets\Scripts\Worker\StringSpliter.cs" />
     <Compile Include="Assets\Scripts\Worker\UI\DialogUI.cs" />
     <Compile Include="Assets\Scripts\Worker\UI\DisplayInfoUi.cs" />
@@ -330,6 +339,7 @@
     <Compile Include="Assets\Scripts\WorkerPart\SoundsManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Perfabs\Maker\GameCore.ballance.txt" />
     <None Include="Assets\Perfabs\Maker\LevelMake\level1.ballance.txt" />
     <None Include="Assets\Perfabs\Maker\MenuLevel.ballance.txt" />
     <None Include="Assets\Perfabs\Maker\WorkerPart.ballance.txt" />

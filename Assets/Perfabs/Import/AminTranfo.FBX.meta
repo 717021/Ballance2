@@ -1,0 +1,144 @@
+fileFormatVersion: 2
+guid: f4aaf876dc4e9e64daa3cf23b916ff40
+timeCreated: 1523604618
+licenseType: Free
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: AnimTrafo_Bars
+    100004: AnimTrafo_Flashfield
+    100006: AnimTrafo_Ringpart1
+    100008: AnimTrafo_Ringpart2
+    100010: AnimTrafo_Ringpart3
+    100012: AnimTrafo_Ringpart4
+    400000: //RootNode
+    400002: AnimTrafo_Bars
+    400004: AnimTrafo_Flashfield
+    400006: AnimTrafo_Ringpart1
+    400008: AnimTrafo_Ringpart2
+    400010: AnimTrafo_Ringpart3
+    400012: AnimTrafo_Ringpart4
+    2100000: AnimTrafo_RingParts
+    2100002: AnimTrafo_RingParts_Color
+    2100004: AnimTrafo_Flashfield
+    2100006: AnimTrafo_Bars
+    2300000: AnimTrafo_Bars
+    2300002: AnimTrafo_Flashfield
+    2300004: AnimTrafo_Ringpart1
+    2300006: AnimTrafo_Ringpart2
+    2300008: AnimTrafo_Ringpart3
+    2300010: AnimTrafo_Ringpart4
+    3300000: AnimTrafo_Bars
+    3300002: AnimTrafo_Flashfield
+    3300004: AnimTrafo_Ringpart1
+    3300006: AnimTrafo_Ringpart2
+    3300008: AnimTrafo_Ringpart3
+    3300010: AnimTrafo_Ringpart4
+    4300000: AnimTrafo_Ringpart4
+    4300002: AnimTrafo_Ringpart3
+    4300004: AnimTrafo_Ringpart2
+    4300006: AnimTrafo_Ringpart1
+    4300008: AnimTrafo_Flashfield
+    4300010: AnimTrafo_Bars
+    9500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: AnimTrafo_Bars
+    second: {fileID: 2100000, guid: 4edc2cc7ce5ff2848bc49981c3efeb39, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: AnimTrafo_Flashfield
+    second: {fileID: 2100000, guid: 82b5a0ce1192c7747b0b5a1f85a27069, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: AnimTrafo_RingParts
+    second: {fileID: 2100000, guid: 1a81698ee9756ce4f8cab74e7d7ffd8e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: AnimTrafo_RingParts_Color
+    second: {fileID: 2100000, guid: 6b66a659dbae7de4bba63b9e4c5cbf91, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

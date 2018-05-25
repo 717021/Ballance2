@@ -7,85 +7,35 @@ using UnityEngine;
  * 核心模块： 管理球的工作
  */
 
+/// <summary>
+/// 球工作管理器
+/// </summary>
 public class BallsManager : MonoBehaviour
 {
-    public static BallsManager StaticBallsManager { get; private set; }
+    private bool isKeyF1Down, isKeyF2Down, isKeyF3Down, isKeyF4Down;
 
-    private bool isKeyF1Down = false, isKeyF2Down, isKeyF3Down, isKeyF4Down;
-
+    public GameObject ballCamMoveY;
     public Camera ballCamera;
     public GameObject ballCamFollowHost;
-    public GameObject testRoad;
     public GameObject ballWood, ballStone, ballPaper;
     public GameObject ballPeicesWood, ballPeicesStone, ballPeicesPaper;
     public Color ballWoodTranfoColor, ballStoneTranfoColor, ballPaperTranfoColor;
-    public Transform camFollowTarget;
+
     public float camFollowSmothing = 5f;
-    
+    public float camFollowSpeed = 0.05f;
 
     public BallsManager()
     {
-        StaticBallsManager = this;
         thisVector3Right = Vector3.right;
         thisVector3Left = Vector3.left;
         thisVector3Fornt = Vector3.forward;
         thisVector3Back = Vector3.back;
-    }
 
-    public Vector3 thisVector3Right { get; private set; }
-    public Vector3 thisVector3Left { get; private set; }
-    public Vector3 thisVector3Fornt { get; private set; }
-    public Vector3 thisVector3Back { get; private set; }
-
-    private bool _isControl = false;
-
-    /// <summary>
-    /// 获取设置是否可以控制球
-    /// </summary>
-    public bool isControl
-    {
-        get { return _isControl; }
-        set
-        {
-            if (_isControl != value)
-            {
-                _isControl = value;
-                if(value)
-                {
-                    isFollowCam = true;
-                    if (currertRegBall != null)
-                        currertRegBall.Core.StartControl();
-                }
-                else
-                {
-                    isFollowCam = false;
-                    if (currertRegBall != null)
-                        currertRegBall.Core.EndControl();
-                }
-            }
-        }
-    }
-    /// <summary>
-    /// 获取当前球推动方向
-    /// </summary>
-    public BallPushType pushType { get; private set; }
-
-    public void RemoveBallPush(BallPushType t)
-    {
-        if ((pushType & t) == t)
-        {
-            pushType ^= t;
-        }
+        GlobalMediator.SetSystemServices(GameServices.BallsManager, this);
     }
 
     private void Start()
     {
-        camFollowOffset = new Vector3(0, 0.25f, -0.25f);
-        ballCamera.transform.position = new Vector3(0, 0.2f, -0.2f);
-#if UNITY_EDITOR
-        if (!GlobalSettings.StartInIntro)
-            testRoad.SetActive(true);
-#endif
         RegisterBall("BallWood", ballWood, ballPeicesWood, ballWoodTranfoColor);
         RegisterBall("BallStone", ballStone, ballPeicesStone, ballStoneTranfoColor);
         RegisterBall("BallPaper", ballPaper, ballPeicesPaper, ballPaperTranfoColor);
@@ -133,12 +83,9 @@ public class BallsManager : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (isFollowCam)
-            CamFollow();
-        if (isControl)
-            CamUpdate();
-        if (isControl)
-            BallPush();
+        if (isControl) BallPush();
+        if (isFollowCam) CamFollow();
+        if (isControl) CamUpdate();
     }
     private void OnDestroy()
     {
@@ -146,6 +93,7 @@ public class BallsManager : MonoBehaviour
         registeredBall = null;
     }
 
+    //球推检测
     private void BallPush()
     {
         if (currertRegBall != null)
@@ -289,17 +237,47 @@ public class BallsManager : MonoBehaviour
 
     #region Cam
 
+    /// <summary>
+    /// 摄像机面对的右方向量
+    /// </summary>
+    public Vector3 thisVector3Right { get; private set; }
+    /// <summary>
+    /// 摄像机面对的左方向量
+    /// </summary>
+    public Vector3 thisVector3Left { get; private set; }
+    /// <summary>
+    /// 摄像机面对的前方向量
+    /// </summary>
+    public Vector3 thisVector3Fornt { get; private set; }
+    /// <summary>
+    /// 摄像机面对的后方向量
+    /// </summary>
+    public Vector3 thisVector3Back { get; private set; }
+
+    public AnimationCurve animationCurveCamera;
+    public AnimationCurve animationCurveCameraY;
+    public AnimationCurve animationCurveCameraMoveY;
+
     private bool isFollowCam = false;
-    private Vector3 camFollowOffset;
-    public static int cameraRoteValue;
-    private bool cameraLooking = true;
-    private bool cameraSpaced;
-    private bool cameraRoteing;
-    private bool cameraRoteingX;
-    private bool cameraRoteingY;
-    private float cameraRoteingOffest = 5f;
-    private float cameraRoteingValue;
-    private float cameraRoteingRailValue;
+    private bool isLookingBall = false;
+    private bool isCameraSpaced;
+    private bool isCameraRoteing;
+    private bool isCameraRoteingX;
+    private bool isCameraRoteingY;
+    private bool isCameraMovingY;
+    private bool isCameraMovingYDown;
+
+    public int cameraRoteValue;
+    public float cameraMaxRoteingOffest = 5f;
+    public float cameraCurRoteingOffest = 1f;
+    public float cameraSpaceMaxOffest = 0.8f;
+    public float cameraSpaceMinOffest = 0;
+    public float cameraSpaceOffest = 0.1f;
+
+    private Transform camFollowTarget;
+    private Vector3 camVelocityTarget = new Vector3();
+    private float cameraNeedRoteingValue;
+    private float cameraRoteingRealValue;
 
     private void CamFollow()
     {
@@ -308,26 +286,43 @@ public class BallsManager : MonoBehaviour
             isFollowCam = false;
             return;
         }
-        Vector3 targetCampos = camFollowTarget.position + camFollowOffset;
-        ballCamFollowHost.transform.position = Vector3.Lerp(ballCamFollowHost.transform.position, targetCampos, camFollowSmothing * Time.deltaTime);
+        if (isFollowCam)
+        {
+            if (currentBall != null)
+            {
+                ballCamFollowHost.transform.position = Vector3.SmoothDamp(ballCamFollowHost.transform.position, currentBall.transform.position, ref camVelocityTarget, camFollowSpeed);
+            }
+            else
+            {
+                //BallsCamera.get_transform().LookAt(startLookAtTransform);
+                //BallsCamera.get_transform().set_position(Vector3.SmoothDamp(BallsCamera.get_transform().get_position(), targetPosition, ref cameraVelocity, camFollowSpeed));
+            }
+        }
     }
-    private void CamRoteLeft()
+
+    /// <summary>
+    /// 摄像机向左旋转
+    /// </summary>
+    public void CamRoteLeft()
     {
-        if (!this.cameraRoteing)
+        if (!isCameraRoteing)
         {
             if (cameraRoteValue < 3)
                 cameraRoteValue++;
             else
                 cameraRoteValue = 0;
-            this.cameraRoteingValue = 90f;
-            this.cameraRoteing = true;
-            this.cameraRoteingX = true;
-            this.CamRote2();
+            cameraNeedRoteingValue = 90f;
+            isCameraRoteing = true;
+            isCameraRoteingX = true;
+            CamRote2();
         }
     }
-    private void CamRoteRight()
+    /// <summary>
+    /// 摄像机向右旋转
+    /// </summary>
+    public void CamRoteRight()
     {
-        if (!this.cameraRoteing)
+        if (!isCameraRoteing)
         {
             if (cameraRoteValue > 0)
             {
@@ -337,137 +332,221 @@ public class BallsManager : MonoBehaviour
             {
                 cameraRoteValue = 3;
             }
-            this.cameraRoteingValue = -90f;
-            this.cameraRoteing = true;
-            this.cameraRoteingX = true;
-            this.CamRote2();
+            cameraNeedRoteingValue = -90f;
+            isCameraRoteing = true;
+            isCameraRoteingX = true;
+            CamRote2();
         }
     }
-    private void CamRote2()
 
+    private void CamRote2()
     {
         switch (cameraRoteValue)
         {
             case 0:
-                this.thisVector3Right = Vector3.right;
-                this.thisVector3Left = Vector3.left;
-                this.thisVector3Fornt = Vector3.forward;
-                this.thisVector3Back = Vector3.back;
+                thisVector3Right = Vector3.right;
+                thisVector3Left = Vector3.left;
+                thisVector3Fornt = Vector3.forward;
+                thisVector3Back = Vector3.back;
                 break;
             case 1:
-                this.thisVector3Right = Vector3.back;
-                this.thisVector3Left = Vector3.forward;
-                this.thisVector3Fornt = Vector3.right;
-                this.thisVector3Back = Vector3.left;
+                thisVector3Right = Vector3.back;
+                thisVector3Left = Vector3.forward;
+                thisVector3Fornt = Vector3.right;
+                thisVector3Back = Vector3.left;
                 break;
             case 2:
-                this.thisVector3Right = Vector3.left;
-                this.thisVector3Left = Vector3.right;
-                this.thisVector3Fornt = Vector3.back;
-                this.thisVector3Back = Vector3.forward;
+                thisVector3Right = Vector3.left;
+                thisVector3Left = Vector3.right;
+                thisVector3Fornt = Vector3.back;
+                thisVector3Back = Vector3.forward;
                 break;
             case 3:
-                this.thisVector3Right = Vector3.forward;
-                this.thisVector3Left = Vector3.back;
-                this.thisVector3Fornt = Vector3.left;
-                this.thisVector3Back = Vector3.right;
+                thisVector3Right = Vector3.forward;
+                thisVector3Left = Vector3.back;
+                thisVector3Fornt = Vector3.left;
+                thisVector3Back = Vector3.right;
                 break;
         }
     }
-    private void CamRoteSpace()
+    private void CamRote3()
     {
-        if (!this.cameraRoteing && !this.cameraSpaced)
+        switch (cameraRoteValue)
         {
-            this.cameraRoteingValue = -27f;
-            this.cameraRoteing = true;
-            this.cameraRoteingY = true;
+            case 0:
+            case 2:
+                if (ballCamera.transform.localPosition.x != 0) ballCamera.transform.localPosition = new Vector3(0, ballCamera.transform.localPosition.y, ballCamera.transform.localPosition.z);
+                break;
+            case 1:
+            case 3:
+                if (ballCamera.transform.localPosition.z != 0) ballCamera.transform.localPosition = new Vector3(ballCamera.transform.localPosition.x, ballCamera.transform.localPosition.y, 0);
+                break;
         }
     }
-    private void CamRoteSpaceBack()
+
+    /// <summary>
+    /// 摄像机 按住 空格键 上升
+    /// </summary>
+    public void CamRoteSpace()
     {
-        if (this.cameraSpaced)
+        if (!isCameraRoteing && !isCameraSpaced)
         {
-            this.cameraRoteingValue = 27f;
-            this.cameraRoteing = true;
-            this.cameraRoteingY = true;
+            cameraNeedRoteingValue = -27f;
+            isCameraRoteing = true;
+            isCameraRoteingY = true;
+            isCameraMovingY = true;
+            isCameraMovingYDown = false;
         }
+    }
+    /// <summary>
+    /// 摄像机 放开 空格键 下降
+    /// </summary>
+    public void CamRoteSpaceBack()
+    {
+        if (isCameraSpaced)
+        {
+            cameraNeedRoteingValue = 27f;
+            isCameraRoteing = true;
+            isCameraRoteingY = true;
+            isCameraMovingY = true;
+            isCameraMovingYDown = true;
+        }
+    }
+
+    private float CamRoteSpeedFun(float cameraRoteingRealValue)
+    {
+        return animationCurveCamera.Evaluate(Mathf.Abs(cameraRoteingRealValue / 90)) * cameraMaxRoteingOffest;
+    }
+    private float CamRoteSpeedFunY(float cameraRoteingRealValue)
+    {
+        return animationCurveCameraY.Evaluate(Mathf.Abs(cameraRoteingRealValue / 27)) * cameraMaxRoteingOffest;
+    }
+    private float CamMoveSpeedFunY(float cameraRoteingRealValue)
+    {
+        return animationCurveCameraMoveY.Evaluate(Mathf.Abs(cameraRoteingRealValue)) * cameraSpaceOffest;
     }
     private void CamUpdate()
     {
-        if (cameraRoteing)
+        if (isCameraRoteing)
         {
-            if (cameraRoteingX)
+            //水平旋转
+            if (isCameraRoteingX)
             {
-                if (cameraRoteingValue > 0f)
+                if (cameraNeedRoteingValue > 0f)
                 {
-                    if (cameraRoteingRailValue < cameraRoteingValue)
+                    if (cameraRoteingRealValue < cameraNeedRoteingValue)
                     {
-                        cameraRoteingRailValue += cameraRoteingOffest;
-                        ballCamera.transform.RotateAround(currentBall.transform.position, Vector3.up, cameraRoteingOffest);
+                        cameraCurRoteingOffest = CamRoteSpeedFun(cameraRoteingRealValue);
+                        cameraRoteingRealValue += cameraCurRoteingOffest;
+                        ballCamera.transform.RotateAround(camFollowTarget.position, Vector3.up, cameraCurRoteingOffest);
                     }
                     else
                     {
-                        cameraRoteingRailValue = 0f;
-                        cameraRoteingX = false;
-                        cameraRoteing = false;
+                        //float f = cameraNeedRoteingValue - cameraRoteingRealValue;
+                        //if (f > 0) ballCamera.transform.RotateAround(camFollowTarget.position, Vector3.up, -cameraCurRoteingOffest);
+                        CamRote3();
+                        cameraRoteingRealValue = 0f;
+                        isCameraRoteingX = false;
+                        isCameraRoteing = false;
                     }
-                }
-                else if (cameraRoteingRailValue > cameraRoteingValue)
-                {
-                    cameraRoteingRailValue -= cameraRoteingOffest;
-                    ballCamera.transform.RotateAround(currentBall.transform.position, Vector3.up, -cameraRoteingOffest);
                 }
                 else
                 {
-                    cameraRoteingRailValue = 0f;
-                    cameraRoteingX = false;
-                    cameraRoteing = false;
+                    if (cameraRoteingRealValue > cameraNeedRoteingValue)
+                    {
+                        cameraCurRoteingOffest = CamRoteSpeedFun(cameraRoteingRealValue);
+                        cameraRoteingRealValue -= cameraCurRoteingOffest;
+                        ballCamera.transform.RotateAround(camFollowTarget.position, Vector3.up, -cameraCurRoteingOffest);
+                    }
+                    else
+                    {
+                        //float f = cameraNeedRoteingValue - cameraRoteingRealValue;
+                        //if (f < 0) ballCamera.transform.RotateAround(camFollowTarget.position, Vector3.up, -cameraCurRoteingOffest);
+                        CamRote3();
+                        cameraRoteingRealValue = 0f;
+                        isCameraRoteingX = false;
+                        isCameraRoteing = false;
+                    }
                 }
             }
-            else if (cameraRoteingY)
+            //垂直旋转
+            if (isCameraRoteingY)
             {
-                if (cameraRoteingValue > 0f)
+                if (cameraNeedRoteingValue > 0f)
                 {
-                    if (cameraRoteingRailValue < cameraRoteingValue)
+                    if (cameraRoteingRealValue < cameraNeedRoteingValue)
                     {
-                        cameraRoteingRailValue += cameraRoteingOffest;
-                        ballCamera.transform.RotateAround(currentBall.transform.position, thisVector3Left, cameraRoteingOffest);
+                        cameraCurRoteingOffest = CamRoteSpeedFunY(cameraRoteingRealValue);
+                        cameraRoteingRealValue += cameraCurRoteingOffest;
+                        ballCamera.transform.RotateAround(ballCamMoveY.transform.position, thisVector3Left, cameraCurRoteingOffest);
                     }
                     else
                     {
-                        cameraSpaced = false;
-                        cameraRoteingRailValue = 0f;
-                        cameraRoteingY = false;
-                        cameraRoteing = false;
+                        isCameraSpaced = false;
+                        cameraRoteingRealValue = 0f;
+                        isCameraRoteingY = false;
+                        if (!isCameraMovingY)
+                            isCameraRoteing = false;
                     }
                 }
-                else if (cameraRoteingRailValue > cameraRoteingValue)
+                else if (cameraNeedRoteingValue < 0f)
                 {
-                    cameraRoteingRailValue -= cameraRoteingOffest;
-                    ballCamera.transform.RotateAround(currentBall.transform.position, thisVector3Left, -cameraRoteingOffest);
+                    if (cameraRoteingRealValue > cameraNeedRoteingValue)
+                    {
+                        cameraCurRoteingOffest = CamRoteSpeedFunY(cameraRoteingRealValue);
+                        cameraRoteingRealValue -= cameraCurRoteingOffest;
+                        ballCamera.transform.RotateAround(ballCamMoveY.transform.position, thisVector3Left, -cameraCurRoteingOffest);
+                    }
+                    else
+                    {
+                        isCameraSpaced = true;
+                        cameraRoteingRealValue = 0f;
+                        isCameraRoteingY = false;
+                        if (!isCameraMovingY)
+                            isCameraRoteing = false;
+                    }
+                }
+            }
+            //空格键 垂直上升
+            if (isCameraMovingY)
+            {
+                if (isCameraMovingYDown)
+                {
+                    if (ballCamMoveY.transform.position.y > 0)
+                        ballCamMoveY.transform.localPosition = new Vector3(0, ballCamMoveY.transform.localPosition.y - CamMoveSpeedFunY(ballCamMoveY.transform.localPosition.y), 0);
+                    else
+                    {
+                        ballCamMoveY.transform.localPosition = new Vector3(0, 0, 0);
+                        isCameraMovingY = false;
+                        if (!isCameraRoteingY)
+                            isCameraRoteing = false;
+                    }
                 }
                 else
                 {
-                    cameraSpaced = true;
-                    cameraRoteingRailValue = 0f;
-                    cameraRoteingY = false;
-                    cameraRoteing = false;
+                    if (ballCamMoveY.transform.localPosition.y < cameraSpaceMaxOffest)
+                        ballCamMoveY.transform.localPosition = new Vector3(0, ballCamMoveY.transform.localPosition.y + CamMoveSpeedFunY(ballCamMoveY.transform.localPosition.y),0);
+                    else
+                    {
+                        ballCamMoveY.transform.localPosition = new Vector3(0, cameraSpaceMaxOffest, 0);
+                        isCameraMovingY = false;
+                        if (!isCameraRoteingY)
+                            isCameraRoteing = false;
+                    }
                 }
             }
         }
-        if (cameraLooking && !isFollowCam)
+        //看着球
+        if (isLookingBall)
         {
             if (currentBall != null)
-            {
                 ballCamera.transform.LookAt(currentBall.transform);
-            }
-            else
-            {
-                //ballCamera.transform.LookAt(startLookAtTransform);
-            }
         }
     }
+
     #endregion
+
+    #region 球控制
 
     private GameObject currentBall;
     private Rigidbody rigidbodyCurrent;
@@ -477,10 +556,60 @@ public class BallsManager : MonoBehaviour
     private RegBall currertRegBall;
     private List<RegBall> registeredBall = new List<RegBall>();
 
+    private bool _isControl = false;
+
+    /// <summary>
+    /// 获取设置是否可以控制球
+    /// </summary>
+    public bool isControl
+    {
+        get { return _isControl; }
+        set
+        {
+            if (_isControl != value)
+            {
+                _isControl = value;
+                if (value)
+                {
+                    isLookingBall = true;
+                    isFollowCam = true;
+                    if (currertRegBall != null)
+                        currertRegBall.Core.StartControl();
+                }
+                else
+                {
+                    isFollowCam = false;
+                    isLookingBall = false;
+                    if (currertRegBall != null)
+                        currertRegBall.Core.EndControl();
+                }
+            }
+        }
+    }
+    /// <summary>
+    /// 获取当前球推动方向
+    /// </summary>
+    public BallPushType pushType { get; private set; }
+
+    public void RemoveBallPush(BallPushType t)
+    {
+        if ((pushType & t) == t)
+        {
+            pushType ^= t;
+        }
+    }
+
+    /// <summary>
+    /// 重新设置默认球位置并激活
+    /// </summary>
     public void RecoverBallDef()
     {
         RecoverBall(nextRecoverBallPos);
     }
+    /// <summary>
+    /// 重新设置指定球位置并激活
+    /// </summary>
+    /// <param name="pos">球名字</param>
     public void RecoverBall(Vector3 pos)
     {
         if (currertRegBall != null)
@@ -489,6 +618,10 @@ public class BallsManager : MonoBehaviour
             camFollowTarget.position = pos;
         }
     }
+    /// <summary>
+    /// 激活指定的球
+    /// </summary>
+    /// <param name="type">球名字</param>
     public void ActiveBall(string type)
     {
         RecoverBallDef();
@@ -501,14 +634,24 @@ public class BallsManager : MonoBehaviour
             rigidbodyCurrent = currentBall.GetComponent<Rigidbody>();
             camFollowTarget = currentBall.GetComponent<Transform>();
             isFollowCam = true;
+            isLookingBall = true;
         }
     }
+    /// <summary>
+    /// 激活默认球
+    /// </summary>
     public void ActiveBallDef()
     {
-        ActiveBall(currertRegBall.TypeName);
+        if (currertRegBall != null)
+            ActiveBall(currertRegBall.TypeName);
+        else ActiveBall("BallWood");
     }
+    /// <summary>
+    /// 清除已激活的球
+    /// </summary>
     public void ClearBall()
     {
+        isControl = false;
         if (currertRegBall != null)
         {
             currertRegBall.Core.Deactive();
@@ -520,14 +663,22 @@ public class BallsManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 开始控制
+    /// </summary>
     public void StartControl()
     {
         isControl = true;
     }
+    /// <summary>
+    /// 停止控制
+    /// </summary>
     public void EndControl()
     {
         isControl = false;
     }
+
+    #endregion
 
     #region 球注册
 
@@ -536,17 +687,36 @@ public class BallsManager : MonoBehaviour
     /// </summary>
     public class RegBall
     {
+        /// <summary>
+        /// 类型名字
+        /// </summary>
         public string TypeName;
+        /// <summary>
+        /// 球基本类
+        /// </summary>
         public Ball Core;
+        /// <summary>
+        /// 球基本模型
+        /// </summary>
         public GameObject Base;
+        /// <summary>
+        /// 球碎片
+        /// </summary>
         public GameObject Pieces;
+        /// <summary>
+        /// 变球器颜色
+        /// </summary>
         public Color TrafoColor;
+        /// <summary>
+        /// 变球器动画类
+        /// </summary>
+        public AnimTranfo AnimTranfo;
     }
 
     /// <summary>
     /// 获取注册的球类
     /// </summary>
-    /// <param name="type">名字</param>
+    /// <param name="type">球名字</param>
     /// <returns></returns>
     public RegBall GetRegBall(string type)
     {
@@ -582,7 +752,7 @@ public class BallsManager : MonoBehaviour
     /// <summary>
     /// 取消注册球类
     /// </summary>
-    /// <param name="type">名字</param>
+    /// <param name="type">球名字</param>
     /// <returns></returns>
     public bool UnRegistedBall(string type)
     {
@@ -604,12 +774,12 @@ public class BallsManager : MonoBehaviour
     /// <summary>
     /// 注册球类
     /// </summary>
-    /// <param name="type">名字</param>
+    /// <param name="type">球名字</param>
     /// <param name="b">球本体</param>
     /// <param name="peices">球的碎片</param>
     /// <param name="trafoColor">变球器颜色</param>
     /// <returns></returns>
-    public bool RegisterBall(string type, GameObject b, GameObject peices = null, Color trafoColor = default(Color))
+    public bool RegisterBall(string type, GameObject b, GameObject peices = null, Color trafoColor = default(Color), AnimTranfo animTranfo = null)
     {
         if (!IsBallRegisted(type))
         {
@@ -622,6 +792,7 @@ public class BallsManager : MonoBehaviour
                 regBall.TypeName = type;
                 regBall.Pieces = peices;
                 regBall.TrafoColor = trafoColor;
+                regBall.AnimTranfo = animTranfo;
                 registeredBall.Add(regBall);
             }
         }

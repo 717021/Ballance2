@@ -1,5 +1,4 @@
-﻿
-using Assets.Scripts.Global;
+﻿using Assets.Scripts.Global;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,7 +23,7 @@ public static class GlobalMediator
     /// </summary>
     public static void GlobalMediatorInitialization()
     {
-        StaticValues.StaticValuesInit();
+        Assets.Scripts.Worker.StoragePathManager.StoragePathInit();
         CommandManager.RegisterCommand("exit", ExitCommandReceiverHandler, "退出游戏");
         CommandManager.RegisterCommand("nodebug", NoDebugCommandReceiverHandler, "退出调试模式");
     }
@@ -69,6 +68,51 @@ public static class GlobalMediator
     }
 
     #region Logs
+
+    /// <summary>
+    /// 输出信息到控制台
+    /// </summary>
+    /// <param name="f">发送者名字</param>
+    /// <param name="s">信息</param>
+    public static void Log(string f, string s)
+    {
+        if (CommandManager != null)
+            CommandManager.Log("[" + f + "] " + s);
+        else Debug.Log("[" + f + "] " + s);
+    }
+    /// <summary>
+    /// 输出错误信息到控制台
+    /// </summary>
+    /// <param name="f">发送者名字</param>
+    /// <param name="s">信息</param>
+    public static void LogErr(string f, string s)
+    {
+        if (CommandManager != null)
+            CommandManager.LogErr("[" + f + "] " + s);
+        else Debug.LogError("[" + f + "] " + s);
+    }
+    /// <summary>
+    /// 输出警告信息到控制台
+    /// </summary>
+    /// <param name="f">发送者名字</param>
+    /// <param name="s">信息</param>
+    public static void LogWarn(string f, string s)
+    {
+        if (CommandManager != null)
+            CommandManager.LogWarn("[" + f + "] " + s);
+        else Debug.LogWarning("[" + f + "] " + s);
+    }
+    /// <summary>
+    /// 输出信息到控制台
+    /// </summary>
+    /// <param name="f">发送者名字</param>
+    /// <param name="s">信息</param>
+    public static void LogInfo(string f, string s)
+    {
+        if (CommandManager != null)
+            CommandManager.LogInfo("[" + f + "] " + s);
+        else Debug.Log("["+f+"] "+s);
+    }
 
     /// <summary>
     /// 输出信息到控制台
@@ -345,7 +389,13 @@ public static class GlobalMediator
     private static LevelManager levelManager;
     private static LevelLoader levelLoader;
     private static BallsManager ballsManager;
+    private static AnimTranfoMgr animTranfoMgr;
 
+    /// <summary>
+    /// 【你不能调用这个方法】
+    /// </summary>
+    /// <param name="g"></param>
+    /// <param name="o"></param>
     public static void SetSystemServices(GameServices g, object o)
     {
         switch (g)
@@ -367,6 +417,8 @@ public static class GlobalMediator
                     ballsManager = o as BallsManager;
                 break;
             case GameServices.AnimTranfo:
+                if (o is AnimTranfoMgr)
+                    animTranfoMgr = o as AnimTranfoMgr;
                 break;
         }
     }
@@ -390,7 +442,7 @@ public static class GlobalMediator
             case GameServices.BallsManager:
                 return ballsManager;
             case GameServices.AnimTranfo:
-                break;
+                return animTranfoMgr;
         }
         return null;
     }

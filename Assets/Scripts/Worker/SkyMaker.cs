@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Global;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,11 +24,11 @@ namespace Assets.Scripts.Hlper
         /// <returns>返回创建好的天空盒</returns>
         public static Material MakeSkyBox(string s)
         {
-            Texture SkyLeft = GlobalModLoader.GetResource("skys_*TYPE*", "Sky_"+s+"_Left.BMP") as Texture;
-            Texture SkyRight = GlobalModLoader.GetResource("skys_*TYPE*", "Sky_" + s + "_Right.BMP") as Texture;
-            Texture SkyFront = GlobalModLoader.GetResource("skys_*TYPE*", "Sky_" + s + "_Front.BMP") as Texture;
-            Texture SkyBack = GlobalModLoader.GetResource("skys_*TYPE*", "Sky_" + s + "_Back.BMP") as Texture;
-            Texture SkyDown = GlobalModLoader.GetResource("skys_*TYPE*", "Sky_" + s + "_Down.BMP") as Texture;
+            Texture SkyLeft = GlobalAssetPool.GetResource("skys_*TYPE*", "Sky_"+s+"_Left.BMP") as Texture;
+            Texture SkyRight = GlobalAssetPool.GetResource("skys_*TYPE*", "Sky_" + s + "_Right.BMP") as Texture;
+            Texture SkyFront = GlobalAssetPool.GetResource("skys_*TYPE*", "Sky_" + s + "_Front.BMP") as Texture;
+            Texture SkyBack = GlobalAssetPool.GetResource("skys_*TYPE*", "Sky_" + s + "_Back.BMP") as Texture;
+            Texture SkyDown = GlobalAssetPool.GetResource("skys_*TYPE*", "Sky_" + s + "_Down.BMP") as Texture;
             Material m = new Material(Shader.Find("Skybox/6 Sided"));
             m.SetTexture("_FrontTex", SkyFront);
             m.SetTexture("_BackTex", SkyBack);

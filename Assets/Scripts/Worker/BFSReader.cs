@@ -22,34 +22,51 @@ namespace Assets.Scripts.Worker
     /// </summary>
     public class BFSReader : IDisposable
     {
+        /// <summary>
+        /// 默认。
+        /// </summary>
         public BFSReader()
         {
 
         }
+        /// <summary>
+        /// 解析 文本。
+        /// </summary>
+        /// <param name="str">需要解析的文字</param>
         public BFSReader(string str)
         {
             if (!string.IsNullOrEmpty(str))
                 AnalysisString(str);
         }
+        /// <summary>
+        /// 解析 文本资源。
+        /// </summary>
+        /// <param name="txt">需要解析的 TextAsset 。</param>
         public BFSReader(TextAsset txt)
         {
             if (txt != null)
                 if (!string.IsNullOrEmpty(txt.text))
                     AnalysisString(txt.text);
         }
+        /// <summary>
+        /// 释放。
+        /// </summary>
         public void Dispose()
         {
             dictionaryProps.Clear();
             dictionaryProps = null;
         }
 
+        /// <summary>
+        /// 获取存放属性的字典。
+        /// </summary>
         public Dictionary<string, string> Props { get { return dictionaryProps; } }
 
         private Dictionary<string, string> dictionaryProps = new Dictionary<string, string>();
         private List<string> lines = new List<string>();
         private bool isReadLine = false;
 
-        private void AnalysisString(string str)
+        protected void AnalysisString(string str)
         {
             //按行（\n）读取
             string[] r = str.Split('\n');

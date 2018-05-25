@@ -125,13 +125,13 @@ public class LevelLoader : MonoBehaviour
             int i;
             if (int.TryParse(nextShouldLoadLevel, out i))
             {
-                path = StaticValues.CoreLevelsFolder + "level" + i + ".ballance";
+                path = StoragePathManager.CoreLevelsFolder + "level" + i + ".ballance";
             }
             else
             {
                 if (System.IO.File.Exists(nextShouldLoadLevel))
                     path = nextShouldLoadLevel;
-                else path = StaticValues.LevelsFolder + nextShouldLoadLevel;
+                else path = StoragePathManager.LevelsFolder + nextShouldLoadLevel;
             }
         }
         else SetErrorAndStopLoad("Error Unspecified.", false, null, "[Loader] Error Unspecified.");
@@ -150,7 +150,7 @@ public class LevelLoader : MonoBehaviour
         string path = LoadLevelGetPath();
         GlobalMediator.Log("[LevelLoader] Start load : " + path);
         //加载主 包（包含关卡文件）
-        yield return StartCoroutine(GlobalModLoader.LoadPackWait(path, this));
+        yield return StartCoroutine(GlobalModLoader.LoadPack(path, this));
         GlobalPack p;
         if (GlobalModLoader.IsPackLoaded(path, out p))
         {

@@ -156,7 +156,7 @@ public class GlobalDyamicModManager : MarshalByRefObject
     }
 
     /// <summary>
-    /// 从此dll里取出脚本附加到GameObject上。脚本必须是MonoBehaviour的派生类。
+    /// 从此dll里取出脚本附加到GameObject上。脚本必须是 MonoBehaviou r的派生类或 UnityEngine.Component 的派生类。
     /// </summary>
     /// <param name="prefab">需要附加的物体。</param>
     /// <param name="compotentName">需要附加的脚本类名。</param>

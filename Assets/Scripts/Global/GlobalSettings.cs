@@ -36,11 +36,12 @@ namespace Assets.Scripts.Global
             {
 #if UNITY_EDITOR
                 return true;
-#endif
+#else
                 int i = PlayerPrefs.GetInt("IsDebug");
                 if (i == 1)
                     return true;
                 else return false;
+#endif
             }
             set
             {

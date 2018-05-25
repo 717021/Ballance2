@@ -51,7 +51,7 @@ public class StaticLoader : MonoBehaviour
         //加载静态自加载包
         foreach (StaticMod s in StaticLoadMods)
         {
-            yield return StartCoroutine(GlobalModLoader.LoadPackWaitInStatic(s, this));
+            yield return StartCoroutine(GlobalModLoader.LoadPackInStatic(s, this));
         }
 
         IsLoading = false;

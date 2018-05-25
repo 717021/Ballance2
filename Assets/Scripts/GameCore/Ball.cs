@@ -26,6 +26,8 @@ public enum BallPushType
 /// </summary>
 public class Ball : MonoBehaviour
 {
+    public Vector3 OldBallTensor;
+    public Vector3 BallTensor;
     public float PushFroce = 3f;
     public ForceMode ForceMode = ForceMode.Force;
 
@@ -36,12 +38,15 @@ public class Ball : MonoBehaviour
     private void Start()
     {
         rigidbodyCurrent = GetComponent<Rigidbody>();
+        OldBallTensor = rigidbodyCurrent.inertiaTensor;
+        if (BallTensor != Vector3.zero)
+            rigidbodyCurrent.inertiaTensor = BallTensor;
         debug = GlobalSettings.Debug;
         ballsManager = GlobalMediator.GetSystemServices(GameServices.BallsManager) as BallsManager;
-        if (ballsManager == null) ballsManager = BallsManager.StaticBallsManager;
     }
     private void Update()
     {
+
     }
 
     /// <summary>

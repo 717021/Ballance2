@@ -191,76 +191,6 @@ public static class GlobalModLoader
     }
 
     /// <summary>
-    /// 获取包中的资源。
-    /// </summary>
-    /// <param name="packName">包名。</param>
-    /// <param name="resourceName">需要的资源名字。</param>
-    /// <returns></returns>
-    public static Object GetResource(string packName, string resourceName)
-    {
-        GlobalPack p;
-        if (packName.Contains("*TYPE*")) packName = packName.Replace("*TYPE*", type);
-        if (IsPackLoaded(packName, out p))
-        {
-            if (p.Base != null)
-            {
-                return p.Base.LoadAsset(resourceName);
-            }
-        }
-        return null;
-    }
-    /// <summary>
-    /// 获取包中的资源。
-    /// </summary>
-    /// <typeparam name="T">需要的资源类型。</typeparam>
-    /// <param name="packName">包名。</param>
-    /// <param name="resourceName">需要的资源名字。</param>
-    /// <returns></returns>
-    public static T GetResource<T>(string packName, string resourceName) where T : Object
-    {
-        GlobalPack p;
-        if (packName.Contains("*TYPE*")) packName = packName.Replace("*TYPE*", type);
-        if (IsPackLoaded(packName, out p))
-        {
-            if (p.Base != null)
-                return p.Base.LoadAsset(resourceName, typeof(T)) as T;
-        }
-        return default(T);
-    }
-
-    /// <summary>
-    /// 加载资源包（unity3d或assetbundle文件）。
-    /// </summary>
-    /// <param name="path">文件路径。</param>
-    /// <param name="m">this</param>
-    /// <returns>是否成功。</returns>
-    public static bool LoadResourcePack(string path, MonoBehaviour m)
-    {
-        GlobalPack p;
-        if (!IsPackLoaded(path, out p))
-        {
-            m.StartCoroutine(LoadResourcePackWait(path, m));
-            return true;
-        }
-        return false;
-    }
-    /// <summary>
-    /// 默认加载包。
-    /// </summary>
-    /// <param name="path">文件路径。</param>
-    /// <param name="m">this</param>
-    /// <returns>是否成功。</returns>
-    public static bool LoadPack(string path, MonoBehaviour m)
-    {
-        GlobalPack p;
-        if (!IsPackLoaded(path, out p))
-        {
-            m.StartCoroutine(LoadPackWait(path, m));
-            return true;
-        }
-        return false;
-    }
-    /// <summary>
     /// 获取已加载的包，如果没有加载，则返回false。
     /// </summary>
     /// <param name="path">名字。</param>
@@ -303,17 +233,7 @@ public static class GlobalModLoader
         return b;
     }
 
-    /// <summary>
-    /// 获取在Ballance2_Data/Core文件夹里的dll路径
-    /// </summary>
-    /// <param name="name">dll名字</param>
-    /// <returns></returns>
-    public static string GetCodeModPathWithName(string name)
-    {
-        if (name.EndsWith(".dll"))
-            return StaticValues.CoreFolder + name;
-        else return StaticValues.CoreFolder + name + ".dll";
-    }
+
     /// <summary>
     /// 文件加载dll
     /// </summary>
@@ -376,7 +296,13 @@ public static class GlobalModLoader
         return b;
     }
 
-    public static IEnumerator LoadPackWaitInStatic(StaticLoader.StaticMod staticMod, MonoBehaviour m)
+    /// <summary>
+    /// 阻塞加载静态包。
+    /// </summary>
+    /// <param name="staticMod"></param>
+    /// <param name="m">this</param>
+    /// <returns></returns>
+    public static IEnumerator LoadPackInStatic(StaticLoader.StaticMod staticMod, MonoBehaviour m)
     {
         if (staticMod!=null)
         {
@@ -389,150 +315,34 @@ public static class GlobalModLoader
                     foreach (GameObject gg in staticMod.Prefabs)
                         p.AssetsPool.Add(gg.name + ".prefab", gg);
 
+                BFModReader modReader = new BFModReader(p.Path);
                 TextAsset txt = staticMod.DescriptionFile;
-                yield return m.StartCoroutine(LoadPackWaitKK(p.Name, txt, p, m));
+                yield return m.StartCoroutine(modReader.Analysis(p, txt, m));
+                ModLoadFinishEventCall(p.Path, modReader.LastLoaderError, m, modReader.CurrentLoadPack.LoadState == GlobalPackLoadState.Loaded, p.Path);
             }
             else ModLoadFinishEventCall(staticMod.ToString(), "无效包", m, false, staticMod.ToString());
         }
     }
-    public static IEnumerator LoadPackWait(string path, MonoBehaviour m)
+    /// <summary>
+    /// 阻塞加载包。
+    /// </summary>
+    /// <param name="path">文件路径。</param>
+    /// <param name="m">this</param>
+    /// <returns></returns>
+    public static IEnumerator LoadPack(string path, MonoBehaviour m)
     {
-        WWW www = new WWW(path);
-        yield return www;
-        if (string.IsNullOrEmpty(www.error))
-        {
-            GlobalPack p = new GlobalPack(path);
-            p.LoadState = GlobalPackLoadState.Loading;
-            p.Base = www.assetBundle;
-            if (www.assetBundle != null)
-            {
-                p.Name = Path.GetFileNameWithoutExtension(path);
-
-                string[] a = p.Base.GetAllAssetNames();
-                string t = "";
-                foreach (string ss in a)
-                    if (ss.EndsWith(".ballance.txt"))
-                    {
-                        t = ss;
-                        break;
-                    }
-                if (t == null)
-                {
-                    ModLoadFinishEventCall(path, "找不到描述文件!", m, false, path);
-                    p.LoadState = GlobalPackLoadState.LoadFailed;
-                    yield break;
-                }
-                TextAsset txt = p.Base.LoadAsset<TextAsset>(t);
-
-                yield return m.StartCoroutine(LoadPackWaitKK(path, txt, p, m));
-            }
-            else ModLoadFinishEventCall(path, "无效包", m, false, path);
-        }
-        else
-        {
-            ModLoadFinishEventCall(path, www.error, m, false, path);
-        }
+        BFModReader modReader = new BFModReader(path);
+        yield return m.StartCoroutine(modReader.Read(m));
+        ModLoadFinishEventCall(path, modReader.LastLoaderError, m, modReader.CurrentLoadPack.LoadState == GlobalPackLoadState.Loaded, path);
     }
-    public static IEnumerator LoadPackWaitKK(string path, TextAsset txt, GlobalPack p, MonoBehaviour m)
+    /// <summary>
+    /// 阻塞加载资源包（unity3d或assetbundle文件）。
+    /// </summary>
+    /// <param name="path">文件路径。</param>
+    /// <param name="m">this</param>
+    public static IEnumerator LoadResourcePack(string path, MonoBehaviour m)
     {
-        GlobalMediator.CommandManager.Log("[GlobalModLoader] Loading " + path);
-        if (txt == null)
-        {
-            ModLoadFinishEventCall(path, "找不到描述文件", m, false, path);
-            p.LoadState = GlobalPackLoadState.LoadFailed;
-            yield break;
-        }
-        BFSReader b = new BFSReader(txt);
-        string aname = b.GetPropertyValue("ModAuthor");
-        if (aname != null) p.AuthorName = aname;
-        string name = b.GetPropertyValue("ModName");
-        if (name != null) p.Name = name;
-        string type = b.GetPropertyValue("ModType");
-        switch (type)
-        {
-            case "Resource":
-                p.Type = GlobalPackType.Resource;
-                break;
-            case "Level":
-                p.Type = GlobalPackType.Level;
-                break;
-            case "Mod":
-                p.Type = GlobalPackType.Mod;
-                break;
-        }
-        string dps = b.GetPropertyValue("ModDepends");
-        if (dps != null)
-        {
-            p.DependsPack = dps;
-            yield return m.StartCoroutine(LoadModDepends(p, m));
-            if (p.LoadState == GlobalPackLoadState.LoadFailed)
-            {
-                ModLoadFinishEventCall(path, "无法加载包，因为必要的一个依赖包无法加载。详情请查看控制台输出。", m, false, path);
-                p.LoadState = GlobalPackLoadState.LoadFailed;
-                yield break;
-            }
-        }
-        LoadedPacks.Add(p);
-        p.DescribeFile = b;
-
-        string entry = b.GetPropertyValue("ModEntry");
-        if (!string.IsNullOrEmpty(entry))
-        {
-            p.EntryFunction = entry;
-            string dps1 = b.GetPropertyValue("NeedInitialize");
-            if (dps1 != null)
-            {
-                if (dps1 == "true") p.NeedInitialize = true;
-                else if (dps1 == "false") p.NeedInitialize = false;
-            }
-            if (!RunModEntry(p) && GlobalSettings.Debug && !scenseIniting)
-            {
-                //GlobalMediator.CommandManager.OutPutDebug("GrobalModLoader", "Mod :" + path + " 初始化失败。");
-            }
-        }
-
-        string dllname = b.GetPropertyValue("RegisterCodeModul");
-        if (!string.IsNullOrEmpty(dllname))
-        {
-            string[] dllnames = b.GetPropertyValueChildValue(dllname);
-            for (int i = 0; i < dllnames.Length; i++)
-            {
-                string[] dllname2z = b.GetPropertyValueChildValue2(dllnames[i]);
-                GlobalDyamicModManager p2;
-                if (!IsCodeModLoaded(GetCodeModPathWithName(dllname2z[0]), out p2))
-                    LoadCodeMod(GetCodeModPathWithName(dllname2z[0]), m, dllname2z.Length >= 2 ? dllname2z[1] : "");
-            }
-        }
-
-        string partname = b.GetPropertyValue("RegisterGamePart");
-        if (!string.IsNullOrEmpty(partname))
-        {
-            string[] dllnames = b.GetPropertyValueChildValue(partname);
-            for (int i = 0; i < dllnames.Length; i++)
-            {
-                string partname2 = dllnames[i];
-                if(partname2!="")
-                {
-                    GlobalGamePart g;
-                    if (!IsGamePartRegistered(partname2, out g))
-                    {
-                        g = new GlobalGamePart(p);
-                        g.AutoAttachScript = b.GetPropertyValue(partname2 + ".AutoAttachScript");
-                        g.AutoInitObject = b.GetPropertyValue(partname2 + ".AutoInitObject");
-                        string s = b.GetPropertyValue(partname2 + ".PartType");
-                        if(!string.IsNullOrEmpty(s)) g.Type =  (GlobalGamePartType)System.Enum.Parse(typeof(GlobalGamePartType), s);
-                        RegisteredGameParts.Add(g);
-                    }
-                }
-            }
-        }
-
-        ModLoadFinishEventCall(path, null, m, true);
-        p.LoadState = GlobalPackLoadState.Loaded;
-    }
-    public static IEnumerator LoadResourcePackWait(string path, MonoBehaviour m)
-    {
-        GlobalMediator.CommandManager.Log("[GlobalModLoader] Loading Resource Pack " + path);
+        GlobalMediator.Log("[GlobalModLoader] Loading Resource Pack " + path);
         WWW www = new WWW(path);
         yield return www;
         if (string.IsNullOrEmpty(www.error))
@@ -556,8 +366,16 @@ public static class GlobalModLoader
         }
         else  ModLoadFinishEventCall(path, www.error, m);
     }
+    /// <summary>
+    /// 加载包的依赖。
+    /// </summary>
+    /// <param name="p">包</param>
+    /// <param name="m">this</param>
+    /// <returns></returns>
     public static IEnumerator LoadModDepends(GlobalPack p, MonoBehaviour m)
     {
+        if(p.LoadState!= GlobalPackLoadState.Loading)
+            yield break;
         StringSpliter s = new StringSpliter(p.DependsPack, ':');
         if (s.Success)
         {
@@ -567,11 +385,11 @@ public static class GlobalModLoader
                 {
                     if (!IsPackLoading(ss))
                     {
-                        yield return m.StartCoroutine(LoadPackWait(ss, m));
+                        yield return m.StartCoroutine(LoadPack(ss, m));
                         GlobalPack p2;
                         if (!IsPackLoaded(ss, out p2))
                         {
-                            GlobalMediator.CommandManager.OutPutError("Mod :" + p.Name + " 加载失败。因为依赖包 " + p2.Name + " 无法加载", "GlobalModLoader");
+                            GlobalMediator.LogErr("Mod :" + p.Name + " 加载失败。因为依赖包 " + p2.Name + " 无法加载", "GlobalModLoader");
                             //
                             p2.LoadState =  GlobalPackLoadState.LoadFailed;
                             yield break;
@@ -582,7 +400,12 @@ public static class GlobalModLoader
         }
     }
 
-    private static bool RunModEntry(GlobalPack p)
+    /// <summary>
+    /// 运行包的入口函数。
+    /// </summary>
+    /// <param name="p"></param>
+    /// <returns></returns>
+    public static bool RunModEntry(GlobalPack p)
     {
         bool erred = false;
         if (p.LoadState == GlobalPackLoadState.Loaded && !p.NeedInitialize)
@@ -598,15 +421,19 @@ public static class GlobalModLoader
                         if (IsPackLoaded(ss, out p1))
                         {
                             if (p.LoadState == GlobalPackLoadState.Loaded && !p1.NeedInitialize)
+                            {
                                 if (!RunModEntry(p1))
                                 {
-                                    //GlobalMediator.CommandManager.OutPutDebug("GrobalModLoader", "Mod :" + p.Name + " 的依赖包 " + ss + " 无法初始化。");
+                                    GlobalMediator.Log("GrobalModLoader", "Mod :" + p.Name + " 的依赖包 " + ss + " 无法初始化。");
                                     erred = true;
                                 }
+
+                                //Run Entry
+                            }
                         }
                         else
                         {
-                            //GlobalMediator.CommandManager.OutPutDebug("GrobalModLoader", "Mod :" + p.Name + " 的依赖包 " + ss + " 无法初始化。(找不到包)");
+                            GlobalMediator.Log("GrobalModLoader", "Mod :" + p.Name + " 的依赖包 " + ss + " 无法初始化。(找不到包)");
                             erred = true;
                         }
                     }
@@ -616,6 +443,7 @@ public static class GlobalModLoader
         }
         return !erred;
     }
+
     private static void ModLoadFinishEventCall(string e, string err, MonoBehaviour m, bool f = false, string path = "")
     {
         LaetPackLoadSuccess = f;
@@ -648,6 +476,9 @@ public static class GlobalModLoader
         }
     }
 
+    public static string GameTypeString { get { return type; } }
+    public static bool ScenseIniting { get { return scenseIniting; } }
+
     static float allcount = 0;
     static float finishcount = 0;
     static bool nextmustload = false;
@@ -656,7 +487,7 @@ public static class GlobalModLoader
     static string type = "";
     static IEnumerator GameInit1(MonoBehaviour m)
     {
-        string path = StaticValues.CoreFolder + "GameInit.txt";
+        string path = StoragePathManager.CoreFolder + "GameInit.txt";
         WWW www = new WWW(path);
         yield return www;
         if (www.error == null)
@@ -688,7 +519,7 @@ public static class GlobalModLoader
     static IEnumerator GameInit2(string s, MonoBehaviour m)
     {
         string[] strs = s.Split(';');
-        string path = StaticValues.CoreFolder + strs[0];
+        string path = StoragePathManager.CoreFolder + strs[0];
         if (path.Contains("*TYPE*"))
             path = path.Replace("*TYPE*", type);
         if (strs[1] == "MustLoad")
@@ -698,7 +529,7 @@ public static class GlobalModLoader
         switch (strs[2].Trim())
         {
             case "Resource":
-                yield return m.StartCoroutine(LoadResourcePackWait(path, m));
+                yield return m.StartCoroutine(LoadResourcePack(path, m));
                 break;
             case "Code":
                 //path = strs[0];
@@ -717,7 +548,7 @@ public static class GlobalModLoader
                 break;
             case "Function":
             default:
-                yield return m.StartCoroutine(LoadPackWait(path, m));
+                yield return m.StartCoroutine(LoadPack(path, m));
                 break;
         }
         finishcount++;

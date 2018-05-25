@@ -50,7 +50,7 @@ public class SoundsManager : MonoBehaviour
 
     public AudioClip LoadAudioItemInPack(string pkg,string it)
     {
-        return GlobalModLoader.GetResource(pkg, it) as AudioClip;
+        return GlobalAssetPool.GetResource(pkg, it) as AudioClip;
     }
 
     void GameExitingActionHandler()

@@ -9,6 +9,10 @@ using UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
+    public LevelManager()
+    {
+        GlobalMediator.SetSystemServices(GameServices.LevelManager, this);
+    }
 
     //关卡基本的几个元件
     [System.NonSerialized]
@@ -21,6 +25,8 @@ public class LevelManager : MonoBehaviour
     public List<GameObject> prResetPoints = new List<GameObject>();
     [System.NonSerialized]
     public LevelLoader currentLevelLaoder;
+
+    public GameObject LevelInitMgr;
 
     void Start()
     {
