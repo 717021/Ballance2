@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /*
- * 代码说明：游戏声音播放器
+ * 代码说明：游戏背景声音播放器
  * 
  * 
  公有操作：
@@ -18,12 +18,30 @@ public class SoundsManager : MonoBehaviour
 {
     private static Dictionary<string, AudioClip> playedCache = new Dictionary<string, AudioClip>();
     private Dictionary<string, AudioSource> isPlayingVoice = new Dictionary<string, AudioSource>();
-
+    private Dictionary<string, ManagedVoice> managedVoice = new Dictionary<string, ManagedVoice>();
 
     private AudioSource AudioPlayerBackGround;
     private AudioSource AudioPlayerBackGroundLoop;
     private AudioSource AudioPlayerVoiceLoop;
     private AudioSource AudioPlayerVoice;
+
+    private struct ManagedVoice
+    {
+        public ManagedVoice(bool isBg, AudioSource source)
+        {
+            this.source = source;
+            this.isBg = isBg;
+        }
+
+        public AudioSource source;
+        public bool isBg;
+    }
+
+    ActionHandler setActionHandler,
+        playActionHandler,
+        stopActionHandler,
+        addActionHandler,
+        removeActionHandler;
 
     private void Start()
     {
@@ -40,12 +58,17 @@ public class SoundsManager : MonoBehaviour
 
         GlobalMediator.RegisterEventLinster(new OnGameExitLinister(GameExitingActionHandler));
 
-        ActionHandler setActionHandler = GlobalMediator.RegisterAction(new SetSoundMgrSettingsAction(), "SetSoundMgrSettings");
+        setActionHandler = GlobalMediator.RegisterAction(new SetSoundMgrSettingsAction(), "SetSoundMgrSettings");
         setActionHandler.AddHandler("SoundsManager", SetActionHandler);
-        ActionHandler playActionHandler = GlobalMediator.RegisterAction(new PlaySoundAction(), "PlayItem");
+        playActionHandler = GlobalMediator.RegisterAction(new PlaySoundAction(), "PlayItem");
         playActionHandler.AddHandler("SoundsManager", PlayItemActionHandler);
-        ActionHandler stopActionHandler = GlobalMediator.RegisterAction(new StopSoundAction(), "StopItem");
+        stopActionHandler = GlobalMediator.RegisterAction(new StopSoundAction(), "StopItem");
         stopActionHandler.AddHandler("SoundsManager", StopItemActionHandler);
+
+        addActionHandler = GlobalMediator.RegisterAction(new AddManagedSoundAction(), "AddManagedSound");
+        addActionHandler.AddHandler("SoundsManager", AddManagedVoiceActionHandler);
+        removeActionHandler = GlobalMediator.RegisterAction(new RemoveManagedSoundAction(), "RemoveManagedSound");
+        removeActionHandler.AddHandler("SoundsManager", RemoveManagedVoiceActionHandler);
     }
 
     public AudioClip LoadAudioItemInPack(string pkg,string it)
@@ -53,7 +76,7 @@ public class SoundsManager : MonoBehaviour
         return GlobalAssetPool.GetResource(pkg, it) as AudioClip;
     }
 
-    void GameExitingActionHandler()
+    private void GameExitingActionHandler()
     {
         playedCache.Clear();
         foreach (AudioSource a in isPlayingVoice.Values)
@@ -63,8 +86,55 @@ public class SoundsManager : MonoBehaviour
             a.clip = null;
         }
         isPlayingVoice.Clear();
+        managedVoice.Clear();
+    }
+    private void ChangeManagedSounds(bool bg, float v)
+    {
+        if(bg)
+        {
+            foreach(ManagedVoice m in managedVoice.Values)
+            {
+                if (m.isBg)
+                {
+                    m.source.volume = v;
+                }
+            }
+        }
+        else
+        {
+            foreach (ManagedVoice m in managedVoice.Values)
+            {
+                if (!m.isBg)
+                {
+                    m.source.volume = v;
+                }
+            }
+        }
     }
 
+    public bool AddManagedVoiceActionHandler(params object[] datas)
+    {
+        if (datas.Length >= 2)
+        {
+            string name = (string)datas[0];
+            if (managedVoice.ContainsKey(name))
+            {
+                managedVoice.Remove(name);
+                managedVoice.Add(name, new ManagedVoice((bool)datas[1], datas[2] as AudioSource));
+            }
+            else managedVoice.Add(name, new ManagedVoice((bool)datas[1], datas[2] as AudioSource));
+        }
+        return true;
+    }
+    public bool RemoveManagedVoiceActionHandler(params object[] datas)
+    {
+        if (datas.Length >= 1)
+        {
+            string name = (string)datas[0];
+            return managedVoice.Remove(name);
+        }
+        return true;
+    }
     public bool SetActionHandler(params object[] datas)
     {
         if (datas.Length >= 1)
@@ -74,6 +144,7 @@ public class SoundsManager : MonoBehaviour
             {
                 AudioPlayerBackGround.volume = mv;
                 AudioPlayerBackGroundLoop.volume = mv;
+                ChangeManagedSounds(true, mv);
             }
         }
         else if (datas.Length >= 2)
@@ -83,6 +154,7 @@ public class SoundsManager : MonoBehaviour
             {
                 AudioPlayerVoiceLoop.volume = sv;
                 AudioPlayerVoice.volume = sv;
+                ChangeManagedSounds(false, sv);
             }
         }
         return true;

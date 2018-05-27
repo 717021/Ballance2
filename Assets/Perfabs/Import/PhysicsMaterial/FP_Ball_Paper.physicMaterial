@@ -6,8 +6,8 @@ PhysicMaterial:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: FP_Ball_Paper
-  dynamicFriction: 0.5
+  dynamicFriction: 0.6
   staticFriction: 0.5
-  bounciness: 0.4
-  frictionCombine: 1
+  bounciness: 0.5
+  frictionCombine: 0
   bounceCombine: 0

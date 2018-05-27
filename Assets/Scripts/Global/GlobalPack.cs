@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Worker;
+﻿using Assets.Scripts.GameCore;
+using Assets.Scripts.Worker;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,28 @@ using UnityEngine;
 
 namespace Assets.Scripts.Global
 {
+    /// <summary>
+    /// 游戏机关 激活方式
+    /// </summary>
+    public enum GlobalGameModulActiveType
+    {
+        /// <summary>
+        /// 由 SectorManager 激活
+        /// </summary>
+        CtlBySectorMgr,
+        /// <summary>
+        /// 永远激活
+        /// </summary>
+        AlwaysActive,
+        /// <summary>
+        /// 自己控制
+        /// </summary>
+        Custom,
+        /// <summary>
+        /// 自己控制并且发送 OnActive、OnDeactive 消息
+        /// </summary>
+        CustomAndSend,
+    }
     /// <summary>
     /// 元件类型
     /// </summary>
@@ -79,8 +102,9 @@ namespace Assets.Scripts.Global
         /// </summary>
         Loaded,
     }
+
     /// <summary>
-    /// 全局mod包
+    /// 全局mod包 注册类
     /// </summary>
     public class GlobalPack : IDisposable
     {
@@ -94,6 +118,31 @@ namespace Assets.Scripts.Global
             this.path = path;
         }
 
+        /// <summary>
+        /// 是否定义PreRegisterModul
+        /// </summary>
+        /// <param name="name">名字</param>
+        /// <returns></returns>
+        public bool HasPreRegisterModul(string name)
+        {
+            bool rs = false;
+            if (PreRegisterModul == null) return rs;
+            string name2 = "" + name;
+            foreach (string s in PreRegisterModul)
+            {
+                if(name2==s||s== name)
+                {
+                    rs = true;
+                    break;
+                }
+            }
+            return rs;
+        }
+
+        /// <summary>
+        /// 文件已定义的 Modul
+        /// </summary>
+        public string[] PreRegisterModul { get; set; }
         /// <summary>
         /// 包 描述文件
         /// </summary>
@@ -194,7 +243,8 @@ namespace Assets.Scripts.Global
         /// </summary>
         public void Dispose()
         {
-            describeFile.Dispose();
+            if (describeFile != null)
+                describeFile.Dispose();
             describeFile = null;
             AssetsPool.Clear();
             AssetsPool = null;
@@ -206,7 +256,7 @@ namespace Assets.Scripts.Global
         }
     }
     /// <summary>
-    /// 游戏部件
+    /// 游戏部件 注册类
     /// </summary>
     public class GlobalGamePart
     {
@@ -230,5 +280,59 @@ namespace Assets.Scripts.Global
         public string AutoAttachScript { get; set; }
 
         public GlobalPack Pack { get; private set; }
+    }
+    /// <summary>
+    /// 游戏机关 注册类
+    /// </summary>
+    public class GlobalGameModul
+    {
+        public GlobalGameModul(string name, GlobalPack parent)
+        {
+            if (name.StartsWith("P_"))
+                this.name = name;
+            else this.name = "P_" + name;
+            this.parent = parent;
+        }
+
+        private string name = "";
+        private GlobalPack parent;
+
+        /// <summary>
+        /// 机关初始化器名字，为空则使用默认机关初始化器。
+        /// </summary>
+        public string ModulCreater { get; set; }
+        /// <summary>
+        /// 机关属于哪个包
+        /// </summary>
+        public GlobalPack ParentPack { get { return parent; } }
+        /// <summary>
+        /// 机关主体
+        /// </summary>
+        public GameObject BasePerfab { get; set; }
+        /// <summary>
+        /// 机关名字
+        /// </summary>
+        public string Name { get { return name; } }
+        /// <summary>
+        /// 机关激活类型
+        /// </summary>
+        public GlobalGameModulActiveType ActiveType { get; set; }
+        /// <summary>
+        /// 机关是否开始就是激活的。
+        /// </summary>
+        public bool StartActive = false;
+        /// <summary>
+        /// 机关 IC 备份方式
+        /// </summary>
+        public ICBackType ICBackupType { get; set; }
+        /// <summary>
+        /// 机关 IC 自定义备份物体
+        /// </summary>
+        public string ICBackupCustom { get; set; }
+        /// <summary>
+        /// 机关 IC 恢复方式
+        /// </summary>
+        public ICResetType ICResetType { get; set; }
+        
     }
 }

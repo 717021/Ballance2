@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Assets.Scripts.Worker
 {
+    /// <summary>
+    /// 获取一些目录的路径
+    /// </summary>
     public static class StoragePathManager
     {
         private static string appFolder = null;

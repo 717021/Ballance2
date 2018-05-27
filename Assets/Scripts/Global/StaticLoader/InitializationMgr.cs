@@ -69,7 +69,7 @@ public class InitializationMgr : MonoBehaviour
         //自动加载模型
         if (!string.IsNullOrEmpty(gp.AutoInitObject))
         {
-            GlobalMediator.CommandManager.Log("[InitializationMgr] Initializing object " + gp.AutoInitObject);
+            GlobalMediator.Log("[InitializationMgr] Initializing object " + gp.AutoInitObject);
             StringSpliter stringSpliter = new StringSpliter(gp.AutoInitObject, ';');
             if (stringSpliter.Success)
             {
@@ -84,13 +84,13 @@ public class InitializationMgr : MonoBehaviour
                             GameObject gameObject = Object.Instantiate(perfab);
                             gameObject.name = ssx[1];
                         }
-                        else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Auto Initialize object failure : " + ss + "  Not  found perfab.");
+                        else GlobalMediator.LogErr("[InitializationMgr] Auto Initialize object failure : " + ss + "  Not  found perfab.");
                     }
                     else
                     {
                         GameObject perfab = gp.Pack.GetPerfab(ss);
                         if (perfab != null) Object.Instantiate(perfab);
-                        else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Auto Initialize object failure : " + ss + "  Not  found perfab.");
+                        else GlobalMediator.LogErr("[InitializationMgr] Auto Initialize object failure : " + ss + "  Not  found perfab.");
                     }
                 }
             }
@@ -105,20 +105,19 @@ public class InitializationMgr : MonoBehaviour
                         GameObject gameObject = Object.Instantiate(perfab);
                         gameObject.name = ssx[1];
                     }
-                    else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Auto Initialize object failure : " + gp.AutoInitObject + "  Not  found perfab.");
+                    else GlobalMediator.LogErr("[InitializationMgr] Auto Initialize object failure : " + gp.AutoInitObject + "  Not  found perfab.");
                 }
                 else
                 {
                     GameObject perfab = gp.Pack.GetPerfab(gp.AutoInitObject);
                     if (perfab != null) Object.Instantiate(perfab);
-                    else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Auto Initialize object failure : " + gp.AutoInitObject + "  Not  found perfab.");
+                    else GlobalMediator.LogErr("[InitializationMgr] Auto Initialize object failure : " + gp.AutoInitObject + "  Not  found perfab.");
                 }
             }
         }
         //自动附加脚本
         if (!string.IsNullOrEmpty(gp.AutoAttachScript))
         {
-
             StringSpliter stringSpliter = new StringSpliter(gp.AutoAttachScript, ';');
             if (stringSpliter.Success)
             {
@@ -133,19 +132,19 @@ public class InitializationMgr : MonoBehaviour
                             string[] ssxe = ssx[0].Split(':');
                             if (ssxe.Length >= 2)
                             {
-                                GlobalMediator.CommandManager.Log("[InitializationMgr] Attaching script " + ssxe[1] + "to object" + ssx[1]);
+                                GlobalMediator.Log("[InitializationMgr] Attaching script " + ssxe[1] + "to object" + ssx[1]);
                                 GlobalDyamicModManager d;
                                 if (GlobalModLoader.IsCodeModLoaded(ssxe[0], out d))
                                     d.AddCompotent(gameObject, ssxe[1]);
                             }
-                            else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Attach script failure : " + ssx[0] + "  Error format.");
+                            else GlobalMediator.LogErr("[InitializationMgr] Attach script failure : " + ssx[0] + "  Error format.");
                         }
-                        else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Attach script failure : " + ssx[0] + "  Not found object :" + ssx[1]);
+                        else GlobalMediator.LogErr("[InitializationMgr] Attach script failure : " + ssx[0] + "  Not found object :" + ssx[1]);
                     }
-                    else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Attach script failure : " + gp.AutoAttachScript + "  Error format.");
+                    else GlobalMediator.LogErr("[InitializationMgr] Attach script failure : " + gp.AutoAttachScript + "  Error format.");
                 }
             }
-            else GlobalMediator.CommandManager.LogErr("[InitializationMgr] Attach script failure : " + gp.AutoAttachScript + "  Error format.");
+            else GlobalMediator.LogErr("[InitializationMgr] Attach script failure : " + gp.AutoAttachScript + "  Error format.");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Global;
+﻿using Assets.Scripts.GameCore;
+using Assets.Scripts.Global;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,8 +7,7 @@ using UnityEngine.SceneManagement;
 
 /*
  * 代码说明：游戏核心模块，游戏主管理模块、中介者模式（Mediator）执行器。
- * 
- * 2017.10.13
+ * 不应该更改。
 */
 
 /// <summary>
@@ -15,6 +15,7 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public static class GlobalMediator
 {
+    private static bool exitingStarted = false;
     private static bool isExiting = false;
     private static bool isUILoadFinished = false;
 
@@ -341,6 +342,8 @@ public static class GlobalMediator
         return isUILoadFinished;
     }
 
+    #region GameServices
+
     /// <summary>
     /// 获取游戏是否正在退出
     /// </summary>
@@ -364,32 +367,38 @@ public static class GlobalMediator
     /// </summary>
     public static void ExitGame()
     {
-        isExiting = true;
-        Time.timeScale = 0;
+        if (!exitingStarted)
+        {
+            exitingStarted = true;
+            isExiting = true;
+            Time.timeScale = 0;
 
-        Application.runInBackground = true;
+            Application.runInBackground = true;
 
-        GlobalMediator.DispatchEvent("GameExiting", null);
+            GlobalMediator.DispatchEvent("GameExiting", null);
 
-        CommandManager.ExitGameClear();
+            CommandManager.ExitGameClear();
 
-        GlobalModLoader.ExitGameClear();
-        GlobalDyamicModManager.ExitClear();
-        GlobalMediator.ExitGameClear();
+            GlobalModLoader.ExitGameClear();
+            GlobalDyamicModManager.ExitClear();
+            GlobalMediator.ExitGameClear();
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
+            UnityEditor.EditorApplication.isPlaying = false;
 #else
         Application.Quit();
 #endif
+        }
     }
 
-    #region GameServices
-
+    public static bool AnimTranfoMgrLoaded { get { return animTranfoMgr == null; } }
+    public static bool BallsManagerLoaded { get { return ballsManager == null; } }
 
     private static LevelManager levelManager;
     private static LevelLoader levelLoader;
     private static BallsManager ballsManager;
     private static AnimTranfoMgr animTranfoMgr;
+    private static ICManager iCManager;
+    private static SectorManager sectorManager;
 
     /// <summary>
     /// 【你不能调用这个方法】
@@ -409,8 +418,12 @@ public static class GlobalMediator
                     levelManager = o as LevelManager;
                 break;
             case GameServices.SectorManager:
+                if (o is SectorManager)
+                    sectorManager = o as SectorManager;
                 break;
             case GameServices.ICManager:
+                if (o is ICManager)
+                    iCManager = o as ICManager;
                 break;
             case GameServices.BallsManager:
                 if (o is BallsManager)
@@ -436,9 +449,9 @@ public static class GlobalMediator
             case GameServices.LevelManager:
                 return levelManager;
             case GameServices.SectorManager:
-                break;
+                return sectorManager;
             case GameServices.ICManager:
-                break;
+                return iCManager;
             case GameServices.BallsManager:
                 return ballsManager;
             case GameServices.AnimTranfo:

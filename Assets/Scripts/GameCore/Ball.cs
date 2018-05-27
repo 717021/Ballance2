@@ -7,140 +7,182 @@ using UnityEngine;
  * 球 描述类
  */
 
-/// <summary>
-/// 球推动类
-/// </summary>
-public enum BallPushType
+namespace Assets.Scripts.GameCore
 {
-    None,
-    Forward = 2,
-    Back = 4,
-    Left = 8,
-    Right = 16,
-    Up = 32,
-    Down = 64
-}
 
-/// <summary>
-/// 球
-/// </summary>
-public class Ball : MonoBehaviour
-{
-    public Vector3 OldBallTensor;
-    public Vector3 BallTensor;
-    public float PushFroce = 3f;
-    public ForceMode ForceMode = ForceMode.Force;
-
-    private Rigidbody rigidbodyCurrent;
-    private bool debug = false;
-    private BallsManager ballsManager;
-
-    private void Start()
+    /// <summary>
+    /// 球推动类型
+    /// </summary>
+    public enum BallPushType
     {
-        rigidbodyCurrent = GetComponent<Rigidbody>();
-        OldBallTensor = rigidbodyCurrent.inertiaTensor;
-        if (BallTensor != Vector3.zero)
-            rigidbodyCurrent.inertiaTensor = BallTensor;
+        None,
+        /// <summary>
+        /// 前
+        /// </summary>
+        Forward = 2,
+        /// <summary>
+        /// 后
+        /// </summary>
+        Back = 4,
+        /// <summary>
+        /// 左
+        /// </summary>
+        Left = 8,
+        /// <summary>
+        /// 右
+        /// </summary>
+        Right = 16,
+        /// <summary>
+        /// 上
+        /// </summary>
+        Up = 32,
+        /// <summary>
+        /// 下
+        /// </summary>
+        Down = 64
+    }
+
+    /// <summary>
+    /// 球
+    /// </summary>
+    public class Ball : MonoBehaviour
+    {
+        public float PushFroce = 3f;
+        public bool UseFallForce = false;
+        public float FallForce = 10f;
+
+        public ForceMode FallFroaceMode = ForceMode.Force;
+        public ForceMode ForceMode = ForceMode.Force;
+
+        private Rigidbody rigidbodyCurrent;
+        private bool debug = false;
+        private BallsManager ballsManager;
+        private Vector3 oldSpeed;
+
+        private void Start()
+        {
+            rigidbodyCurrent = GetComponent<Rigidbody>();
+
+#if UNITY_EDITOR
+            debug = true;
+#else
         debug = GlobalSettings.Debug;
-        ballsManager = GlobalMediator.GetSystemServices(GameServices.BallsManager) as BallsManager;
-    }
-    private void Update()
-    {
-
-    }
-
-    /// <summary>
-    /// 重新设置位置
-    /// </summary>
-    /// <param name="pos"></param>
-    public virtual void Recover(Vector3 pos)
-    {
-        Deactive();
-        gameObject.transform.position = pos;
-        gameObject.transform.eulerAngles=Vector3.zero;
-    }
-    /// <summary>
-    /// 激活
-    /// </summary>
-    /// <param name="pos"></param>
-    public virtual void Active(Vector3 pos)
-    {
-        gameObject.transform.position = pos;
-        if (rigidbodyCurrent != null)
-        {
-            rigidbodyCurrent.WakeUp();
-            if (rigidbodyCurrent.isKinematic)
-                rigidbodyCurrent.isKinematic = false;
+#endif
+            ballsManager = GlobalMediator.GetSystemServices(GameServices.BallsManager) as BallsManager;
         }
-        gameObject.SetActive(true);
-    }
-    /// <summary>
-    /// 使其不活动
-    /// </summary>
-    public virtual void Deactive()
-    {
-        if (rigidbodyCurrent != null)
-            rigidbodyCurrent.Sleep();
-        gameObject.SetActive(false);
-    }
 
-    /// <summary>
-    /// 开始控制
-    /// </summary>
-    public virtual void StartControl()
-    {
-        if (rigidbodyCurrent != null)
+        /// <summary>
+        /// 重新设置位置
+        /// </summary>
+        /// <param name="pos"></param>
+        public virtual void Recover(Vector3 pos)
         {
-            rigidbodyCurrent.WakeUp();
-            if (rigidbodyCurrent.isKinematic)
-                rigidbodyCurrent.isKinematic = false;
+            Deactive();
+            gameObject.transform.position = pos;
+            gameObject.transform.eulerAngles = Vector3.zero;
         }
-    }
-    /// <summary>
-    /// 取消控制
-    /// </summary>
-    public virtual void EndControl()
-    {
-        if (rigidbodyCurrent != null)
+        /// <summary>
+        /// 激活
+        /// </summary>
+        /// <param name="pos"></param>
+        public virtual void Active(Vector3 pos)
         {
-            rigidbodyCurrent.Sleep();
-            if (!rigidbodyCurrent.isKinematic)
-                rigidbodyCurrent.isKinematic = true;
-        }
-    }
-
-    /// <summary>
-    /// 推动
-    /// </summary>
-    public virtual void BallPush()
-    {
-        if (ballsManager.isControl)
-        {
-            BallPushType currentBallPushType = ballsManager.pushType;
-            if (currentBallPushType != BallPushType.None)
+            gameObject.transform.position = pos;
+            if (rigidbodyCurrent != null)
             {
-                if ((currentBallPushType & BallPushType.Forward) == BallPushType.Forward)
+                rigidbodyCurrent.WakeUp();
+                if (rigidbodyCurrent.isKinematic)
+                    rigidbodyCurrent.isKinematic = false;
+            }
+            gameObject.SetActive(true);
+        }
+        /// <summary>
+        /// 使其不活动
+        /// </summary>
+        public virtual void Deactive()
+        {
+            if (rigidbodyCurrent != null)
+                rigidbodyCurrent.Sleep();
+            gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// 开始控制
+        /// </summary>
+        public virtual void StartControl()
+        {
+            if (rigidbodyCurrent != null)
+            {
+                rigidbodyCurrent.velocity = oldSpeed;
+                if (rigidbodyCurrent.isKinematic)
+                    rigidbodyCurrent.isKinematic = false;
+            }
+        }
+        /// <summary>
+        /// 取消控制
+        /// </summary>
+        public virtual void EndControl()
+        {
+            if (rigidbodyCurrent != null)
+            {
+                oldSpeed = rigidbodyCurrent.velocity;
+                if (!rigidbodyCurrent.isKinematic)
+                    rigidbodyCurrent.isKinematic = true;
+            }
+        }
+
+        /// <summary>
+        /// 速度清零。
+        /// </summary>
+        public virtual void RemoveSpeed()
+        {
+            if (rigidbodyCurrent != null)
+            {
+                oldSpeed = Vector3.zero;
+                rigidbodyCurrent.velocity = oldSpeed;
+            }
+        }
+
+        /// <summary>
+        /// 推动
+        /// </summary>
+        public virtual void BallPush()
+        {
+            if (ballsManager.isControl)
+            {
+                //压力?
+                if (UseFallForce)
                 {
-                    rigidbodyCurrent.AddForce(ballsManager.thisVector3Fornt * PushFroce, ForceMode);
+                    rigidbodyCurrent.AddForce(Vector3.down * FallForce, FallFroaceMode);
                 }
-                else if ((currentBallPushType & BallPushType.Back) == BallPushType.Back)
+                //获取 ballsManager 的球推动类型。
+                BallPushType currentBallPushType = ballsManager.pushType;
+                if (currentBallPushType != BallPushType.None)
                 {
-                    rigidbodyCurrent.AddForce(ballsManager.thisVector3Back * PushFroce, ForceMode);
-                }
-                if ((currentBallPushType & BallPushType.Left) == BallPushType.Left)
-                {
-                    rigidbodyCurrent.AddForce(ballsManager.thisVector3Left * PushFroce, ForceMode);
-                }
-                else if ((currentBallPushType & BallPushType.Right) == BallPushType.Right)
-                {
-                    rigidbodyCurrent.AddForce(ballsManager.thisVector3Right * PushFroce, ForceMode);
-                }
-                if (debug)
-                {
-                    if ((currentBallPushType & BallPushType.Up) == BallPushType.Up)
-                        rigidbodyCurrent.AddForce(Vector3.up * this.PushFroce *  5f, 0);
-                    else if ((currentBallPushType & BallPushType.Down) == BallPushType.Down)
-                        rigidbodyCurrent.AddForce(Vector3.down * this.PushFroce);
+                    if ((currentBallPushType & BallPushType.Forward) == BallPushType.Forward)
+                    {
+                        rigidbodyCurrent.AddForce(ballsManager.thisVector3Fornt * PushFroce, ForceMode);
+                    }
+                    else if ((currentBallPushType & BallPushType.Back) == BallPushType.Back)
+                    {
+                        rigidbodyCurrent.AddForce(ballsManager.thisVector3Back * PushFroce, ForceMode);
+                    }
+                    if ((currentBallPushType & BallPushType.Left) == BallPushType.Left)
+                    {
+                        rigidbodyCurrent.AddForce(ballsManager.thisVector3Left * PushFroce, ForceMode);
+                    }
+                    else if ((currentBallPushType & BallPushType.Right) == BallPushType.Right)
+                    {
+                        rigidbodyCurrent.AddForce(ballsManager.thisVector3Right * PushFroce, ForceMode);
+                    }
+                    //调试模式可以上下飞行
+                    if (debug)
+                    {
+                        if ((currentBallPushType & BallPushType.Up) == BallPushType.Up) //上
+                            rigidbodyCurrent.AddForce(Vector3.up * PushFroce * 2f, ForceMode);
+                        else if ((currentBallPushType & BallPushType.Down) == BallPushType.Down)    //下
+                            rigidbodyCurrent.AddForce(Vector3.down * PushFroce, ForceMode);
+                    }
                 }
             }
         }

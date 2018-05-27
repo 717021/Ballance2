@@ -301,7 +301,10 @@
     <Compile Include="Assets\Scripts\GameCore\AnimTranfoMgr.cs" />
     <Compile Include="Assets\Scripts\GameCore\Ball.cs" />
     <Compile Include="Assets\Scripts\GameCore\BallsManager.cs" />
+    <Compile Include="Assets\Scripts\GameCore\ICManager.cs" />
     <Compile Include="Assets\Scripts\GameCore\LevelManager.cs" />
+    <Compile Include="Assets\Scripts\GameCore\Modul.cs" />
+    <Compile Include="Assets\Scripts\GameCore\SectorManager.cs" />
     <Compile Include="Assets\Scripts\Global\Action.cs" />
     <Compile Include="Assets\Scripts\Global\Event.cs" />
     <Compile Include="Assets\Scripts\Global\GameActions.cs" />
@@ -315,14 +318,15 @@
     <Compile Include="Assets\Scripts\Global\GlobalUI\CommandManager.cs" />
     <Compile Include="Assets\Scripts\Global\GlobalUI\UIManager.cs" />
     <Compile Include="Assets\Scripts\Global\StaticLoader\InitializationMgr.cs" />
+    <Compile Include="Assets\Scripts\Global\StaticLoader\ModAllowMgr.cs" />
     <Compile Include="Assets\Scripts\Global\StaticLoader\StaticLoader.cs" />
     <Compile Include="Assets\Scripts\Global\StaticValues.cs" />
     <Compile Include="Assets\Scripts\Intro.cs" />
     <Compile Include="Assets\Scripts\LevelLoader\LevelLoader.cs" />
     <Compile Include="Assets\Scripts\MenuLevel.cs" />
     <Compile Include="Assets\Scripts\NewBehaviourScript.cs" />
+    <Compile Include="Assets\Scripts\Test\SpeedTest.cs" />
     <Compile Include="Assets\Scripts\Worker\BallPiecesController.cs" />
-    <Compile Include="Assets\Scripts\Worker\BFLevelReader.cs" />
     <Compile Include="Assets\Scripts\Worker\BFModReader.cs" />
     <Compile Include="Assets\Scripts\Worker\BFSReader.cs" />
     <Compile Include="Assets\Scripts\Worker\KeyListener.cs" />

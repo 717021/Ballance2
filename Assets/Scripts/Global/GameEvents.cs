@@ -78,4 +78,30 @@ namespace Assets.Scripts.Global
 
         public event OnDialolgClosedHandler OnDialolgClosed;
     }
+
+    /// <summary>
+    /// 声音管理器设置变化侦听器
+    /// </summary>
+    public class OnSoundMgrSettingsChangedLinister : EventLinster
+    {
+        public OnSoundMgrSettingsChangedLinister(OnSoundMgrSettingsChangedHandler h) : base("OnSoundMgrSettingsChanged")
+        {
+            OnSoundMgrSettingsChanged += h;
+        }
+        public OnSoundMgrSettingsChangedLinister(OnSoundMgrSettingsChangedHandler h, string difName) : base("OnSoundMgrSettingsChanged", difName)
+        {
+            OnSoundMgrSettingsChanged += h;
+        }
+
+        public override void OnEvent(object sender, params object[] par)
+        {
+            base.OnEvent(sender, par);
+            if (OnSoundMgrSettingsChanged != null)
+                OnSoundMgrSettingsChanged();
+        }
+
+        public delegate void OnSoundMgrSettingsChangedHandler();
+
+        public event OnSoundMgrSettingsChangedHandler OnSoundMgrSettingsChanged;
+    }
 }

@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Global;
+﻿using Assets.Scripts.GameCore;
+using Assets.Scripts.Global;
 using Assets.Scripts.Worker;
 using System.Collections;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ public static class GlobalModLoader
     {
         LoadedPacks = new List<GlobalPack>();
         RegisteredGameParts = new List<GlobalGamePart>();
+        RegisteredGameModuls = new List<GlobalGameModul>();
         CommandManager.RegisterCommand("gpack", ViewPacksCommandReceiverHandler, "查看 已加载的包", "[all] / [detals/assets/assets2][GlobalPack name]");
         CommandManager.RegisterCommand("gpart", ViewGamePartsCommandReceiverHandler, "查看 已注册的部件", "[all] / [detals/assets/assets2][GlobalGamePart name]");
     }
@@ -168,6 +170,14 @@ public static class GlobalModLoader
         get;
         private set;
     }
+    /// <summary>
+    /// 已注册的机关。
+    /// </summary>
+    public static List<GlobalGameModul> RegisteredGameModuls
+    {
+        get;
+        private set;
+    }
 
     /// <summary>
     /// 获取已加载的GamePart，如果没有加载，则返回false。
@@ -188,6 +198,139 @@ public static class GlobalModLoader
         }
         p = null;
         return b;
+    }
+    /// <summary>
+    /// 获取已加载的 GameModul，如果没有加载，则返回false。
+    /// </summary>
+    /// <param name="path">名字。(机关名:包名 或 机关名)</param>
+    /// <param name="p">接收包的变量。</param>
+    /// <returns>是否成功。</returns>
+    public static bool IsGameModulRegistered(string name, out GlobalGameModul p)
+    {
+        if (string.IsNullOrEmpty(name)) { p = null; return false; }
+        bool b = false;
+        string rname, pname = "";
+        if (name.Contains(":"))
+        {
+            string[] ss = name.Split(':');
+            rname = ss[0];
+            pname = ss[1];
+        }
+        else rname = name;
+        string name2 = "P_" + rname;
+        if (pname == "")
+        {
+            foreach (GlobalGameModul g in RegisteredGameModuls)
+            {
+                if (g.Name == rname || g.Name == name2)
+                {
+                    p = g;
+                    return b;
+                }
+            }
+        }
+        else
+        {
+            GlobalPack g;
+            if (IsPackLoaded(pname, out g))
+            {
+                foreach (GlobalGameModul gm in RegisteredGameModuls)
+                {
+                    if (g == gm.ParentPack && (gm.Name == rname || gm.Name == name2))
+                    {
+                        p = gm;
+                        return b;
+                    }
+                }
+            }
+        }
+        p = null;
+        return b;
+    }
+    /// <summary>
+    /// 尝试注册 Modul
+    /// </summary>
+    /// <param name="name">名字(机关名:包名 或 机关名)</param>
+    /// <returns></returns>
+    public static bool TryRegisterGameModul(string name, GlobalPack inpack = null)
+    {
+        if (string.IsNullOrEmpty(name)) return false;
+        string rname, pname = "";
+        if (name.Contains(":"))
+        {
+            string[] ss = name.Split(':');
+            rname = ss[0];
+            pname = ss[1];
+        }
+        else rname = name;
+        if (inpack != null)
+        {
+            if (inpack.HasPreRegisterModul(rname))
+                return TryRegisterGameModulInnern(rname, inpack);
+        }
+        else
+        {
+            if (pname == "")
+            {
+                foreach (GlobalPack g in LoadedPacks)
+                {
+                    if (g.HasPreRegisterModul(rname))
+                    {
+                        if (TryRegisterGameModulInnern(rname, g))
+                            return true;
+                    }
+                }
+            }
+            else
+            {
+                GlobalPack g;
+                if (IsPackLoaded(pname, out g))
+                {
+                    if (g.HasPreRegisterModul(rname))
+                    {
+                        if (TryRegisterGameModulInnern(rname, g))
+                            return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    private static bool TryRegisterGameModulInnern(string name, GlobalPack inpack)
+    {
+        if (inpack != null && inpack.DescribeFile != null)
+        {
+            GlobalGameModul gm = new GlobalGameModul(name, inpack);
+            BFSReader reader = inpack.DescribeFile;
+            string at = reader.GetPropertyValue(name + ".ActiveType");
+            if(!string.IsNullOrEmpty(at))
+                gm.ActiveType = (GlobalGameModulActiveType)System.Enum.Parse(typeof(GlobalGameModulActiveType), at);
+
+            at = reader.GetPropertyValue(name + ".StartActive");
+            if (!string.IsNullOrEmpty(at))
+                gm.StartActive = ((at == "1") ||( at.ToLower() == "true"));
+
+            at = reader.GetPropertyValue(name + ".ICBackupType");
+            if (!string.IsNullOrEmpty(at))
+                gm.ICBackupType = (ICBackType)System.Enum.Parse(typeof(ICBackType), at);
+
+            at = reader.GetPropertyValue(name + ".ICResetType");
+            if (!string.IsNullOrEmpty(at))
+                gm.ICResetType = (ICResetType)System.Enum.Parse(typeof(ICResetType), at);
+
+            at = reader.GetPropertyValue(name + ".ICBackupCustom");
+            if (!string.IsNullOrEmpty(at))
+                gm.ICBackupCustom = at;
+
+            at = reader.GetPropertyValue(name + ".ModulCreater");
+            if (!string.IsNullOrEmpty(at))
+                gm.ModulCreater = at;
+
+            at = reader.GetPropertyValue(name + ".ModulPerfab");
+            if (!string.IsNullOrEmpty(at))
+                gm.BasePerfab = GlobalAssetPool.GetAsset(at) as GameObject;
+        }
+        return false;
     }
 
     /// <summary>
@@ -564,13 +707,12 @@ public static class GlobalModLoader
     {
         if (GlobalMediator.GameExiting)
         {
-            if (LoadedPacks != null)
-            {
-                foreach (GlobalPack p in LoadedPacks)
-                    p.Dispose();
-                LoadedPacks.Clear();
-            }
+            foreach (GlobalPack p in LoadedPacks)
+                p.Dispose();
+            LoadedPacks.Clear();
             LoadedPacks = null;
+            RegisteredGameModuls.Clear();
+            RegisteredGameModuls = null;
             RegisteredGameParts.Clear();
             RegisteredGameParts = null;
         }

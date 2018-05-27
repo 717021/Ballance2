@@ -6,39 +6,41 @@ using UnityEngine;
  * 游戏核心模块
  *        管理游戏主要工作
  */
-
-public class LevelManager : MonoBehaviour
+namespace Assets.Scripts.GameCore
 {
-    public LevelManager()
+    public class LevelManager : MonoBehaviour
     {
-        GlobalMediator.SetSystemServices(GameServices.LevelManager, this);
-    }
-
-    //关卡基本的几个元件
-    [System.NonSerialized]
-    public GameObject psLevelStart,
-        peLevelEnd,
-        prResetPoints0;
-    [System.NonSerialized]
-    public List<GameObject> pcCheckPoints = new List<GameObject>();
-    [System.NonSerialized]
-    public List<GameObject> prResetPoints = new List<GameObject>();
-    [System.NonSerialized]
-    public LevelLoader currentLevelLaoder;
-
-    public GameObject LevelInitMgr;
-
-    void Start()
-    {
-        currentLevelLaoder = GameObject.Find("LevelLaoder").GetComponent<LevelLoader>();
-        if (currentLevelLaoder != null)
+        public LevelManager()
         {
-            currentLevelLaoder.levelManager = this;
+            GlobalMediator.SetSystemServices(GameServices.LevelManager, this);
         }
-        else throw new System.Exception("[LevelManager] Crash!");       
-    }
-    void Update()
-    {
 
+        //关卡基本的几个元件
+        [System.NonSerialized]
+        public GameObject psLevelStart,
+            peLevelEnd,
+            prResetPoints0;
+
+        private GameObject LevelInitMgr;
+        private LevelLoader currentLevelLaoder;
+
+        public IEnumerator LoadGameCore()
+        {
+            LevelInitMgr.SetActive(true);
+            yield return new WaitUntil(InitializationMgr.IsInitializationMgrInitializefinished);
+        }
+
+        void Start()
+        {
+            currentLevelLaoder = GlobalMediator.GetSystemServices(GameServices.LevelLoader) as LevelLoader;
+            if (currentLevelLaoder != null)
+                currentLevelLaoder.levelManager = this;
+            else throw new System.Exception("[LevelManager] Crash!");
+            LevelInitMgr = transform.Find("LevelInitMgr").gameObject;
+        }
+        void Update()
+        {
+
+        }
     }
 }

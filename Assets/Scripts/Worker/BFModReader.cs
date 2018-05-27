@@ -200,39 +200,49 @@ namespace Assets.Scripts.Worker
                 }
             }
 
-            string dllname = GetPropertyValue("RegisterCodeModul");
-            if (!string.IsNullOrEmpty(dllname))
+            if (p.Type == GlobalPackType.Mod)
             {
-                string[] dllnames = GetPropertyValueChildValue(dllname);
-                for (int i = 0; i < dllnames.Length; i++)
+                string dllname = GetPropertyValue("RegisterCodeModul");
+                if (!string.IsNullOrEmpty(dllname))
                 {
-                    string[] dllname2z = GetPropertyValueChildValue2(dllnames[i]);
-                    GlobalDyamicModManager p2;
-                    if (!GlobalModLoader.IsCodeModLoaded(StoragePathManager.GetCodeModPathWithName(dllname2z[0]), out p2))
-                        GlobalModLoader.LoadCodeMod(StoragePathManager.GetCodeModPathWithName(dllname2z[0]), m, dllname2z.Length >= 2 ? dllname2z[1] : "");
-                }
-            }
-
-            string partname = GetPropertyValue("RegisterGamePart");
-            if (!string.IsNullOrEmpty(partname))
-            {
-                string[] dllnames = GetPropertyValueChildValue(partname);
-                for (int i = 0; i < dllnames.Length; i++)
-                {
-                    string partname2 = dllnames[i];
-                    if (partname2 != "")
+                    string[] dllnames = GetPropertyValueChildValue(dllname);
+                    for (int i = 0; i < dllnames.Length; i++)
                     {
-                        GlobalGamePart g;
-                        if (!GlobalModLoader.IsGamePartRegistered(partname2, out g))
+                        string[] dllname2z = GetPropertyValueChildValue2(dllnames[i]);
+                        GlobalDyamicModManager p2;
+                        if (!GlobalModLoader.IsCodeModLoaded(StoragePathManager.GetCodeModPathWithName(dllname2z[0]), out p2))
+                            GlobalModLoader.LoadCodeMod(StoragePathManager.GetCodeModPathWithName(dllname2z[0]), m, dllname2z.Length >= 2 ? dllname2z[1] : "");
+                    }
+                }
+
+                string partname = GetPropertyValue("RegisterGamePart");
+                if (!string.IsNullOrEmpty(partname))
+                {
+                    string[] dllnames = GetPropertyValueChildValue(partname);
+                    for (int i = 0; i < dllnames.Length; i++)
+                    {
+                        string partname2 = dllnames[i];
+                        if (partname2 != "")
                         {
-                            g = new GlobalGamePart(p);
-                            g.AutoAttachScript = GetPropertyValue(partname2 + ".AutoAttachScript");
-                            g.AutoInitObject = GetPropertyValue(partname2 + ".AutoInitObject");
-                            string s = GetPropertyValue(partname2 + ".PartType");
-                            if (!string.IsNullOrEmpty(s)) g.Type = (GlobalGamePartType)System.Enum.Parse(typeof(GlobalGamePartType), s);
-                            GlobalModLoader.RegisteredGameParts.Add(g);
+                            GlobalGamePart g;
+                            if (!GlobalModLoader.IsGamePartRegistered(partname2, out g))
+                            {
+                                g = new GlobalGamePart(p);
+                                g.AutoAttachScript = GetPropertyValue(partname2 + ".AutoAttachScript");
+                                g.AutoInitObject = GetPropertyValue(partname2 + ".AutoInitObject");
+                                string s = GetPropertyValue(partname2 + ".PartType");
+                                if (!string.IsNullOrEmpty(s)) g.Type = (GlobalGamePartType)System.Enum.Parse(typeof(GlobalGamePartType), s);
+                                GlobalModLoader.RegisteredGameParts.Add(g);
+                            }
                         }
                     }
+                }
+
+                string modulname = GetPropertyValue("RegisterModul");
+                if (!string.IsNullOrEmpty(modulname))
+                {
+                    string[] modulnames = GetPropertyValueChildValue(modulname);
+                    p.PreRegisterModul = modulnames;
                 }
             }
 
