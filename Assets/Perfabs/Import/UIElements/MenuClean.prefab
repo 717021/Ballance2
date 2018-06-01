@@ -39,6 +39,7 @@ GameObject:
   - component: {fileID: 222256947438016020}
   - component: {fileID: 114716507338797068}
   - component: {fileID: 114703685057779390}
+  - component: {fileID: 114602464323027364}
   m_Layer: 5
   m_Name: MenuClean
   m_TagString: Untagged
@@ -46,6 +47,17 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &114602464323027364
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1869964981399744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3742bee81f674f648b6850d795b1b4d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114703685057779390
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using SLua;
 
 /*
  * 代码说明：游戏动态模块（mod）加载器。
@@ -383,11 +384,11 @@ public static class GlobalModLoader
     /// <param name="path">dll路径</param>
     /// <param name="m"></param>
     /// <param name="initcode">初始化调用DLL中的函数（initcode格式：className:methodName 必须是静态类，静态方法）</param>
-    public static void LoadCodeMod(string path, MonoBehaviour m, string initcode = "")
+    public static void LoadCodeMod(string path, MonoBehaviour m, string initcode = "", DyamicModType type = DyamicModType.MonoModule)
     {
         try
         {
-            GlobalDyamicModManager.LoadAssembly(path, initcode);
+            GlobalDyamicModManager.LoadAssembly(path, initcode, type);
         }
         catch (System.Exception e)
         {
@@ -403,11 +404,11 @@ public static class GlobalModLoader
     /// <param name="name">dll在资源中的名字</param>
     /// <param name="m"></param>
     /// <param name="initcode">初始化调用DLL中的函数（initcode格式：className:methodName 必须是静态类，静态方法）</param>
-    public static void LoadCodeModInRes(string path, string name, MonoBehaviour m, string initcode = "")
+    public static void LoadCodeModInRes(string path, string name, MonoBehaviour m, string initcode = "", DyamicModType type = DyamicModType.MonoModule)
     {
         try
         {
-            GlobalDyamicModManager.LoadAssemblyInAssetBundle(path, name, m, initcode);
+            GlobalDyamicModManager.LoadAssemblyInAssetBundle(path, name, m, initcode, type);
 
         }
         catch (System.Exception e)

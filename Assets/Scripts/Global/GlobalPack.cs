@@ -225,6 +225,15 @@ namespace Assets.Scripts.Global
             return null;
         }
 
+        public bool IsGameMod()
+        {
+            return StaticLoader.ModAllowMgr.IsGameCore(name);
+        }
+        public bool IsModAllowLoad()
+        {
+            return StaticLoader.ModAllowMgr.IsAllowLoad(name);
+        }
+
         public string GetLoadStateStr()
         {
             switch (LoadState)

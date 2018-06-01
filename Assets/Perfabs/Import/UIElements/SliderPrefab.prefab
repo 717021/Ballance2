@@ -36,6 +36,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 224403454863335842}
+  - component: {fileID: 114203930462529754}
   m_Layer: 5
   m_Name: SliderPrefab
   m_TagString: Untagged
@@ -173,6 +174,17 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: New Text
+--- !u!114 &114203930462529754
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1048051243595234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e36f8dec250171d48a573737bd81111e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114344026395944190
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -420,7 +432,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 69.03201}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 330, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224645913354155696
@@ -456,8 +468,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -62.9, y: 9.11}
-  m_SizeDelta: {x: 160, y: 18.22}
+  m_AnchoredPosition: {x: 7.5, y: 10}
+  m_SizeDelta: {x: 300, y: 18.22}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224914960139962824
 RectTransform:

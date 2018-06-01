@@ -215,6 +215,19 @@ namespace Assets.Scripts.Worker
                     }
                 }
 
+                string luaname = GetPropertyValue("RegisterLUACodeModul");
+                if (!string.IsNullOrEmpty(luaname))
+                {
+                    string[] dllnames = GetPropertyValueChildValue(luaname);
+                    for (int i = 0; i < dllnames.Length; i++)
+                    {
+                        string[] dllname2z = GetPropertyValueChildValue2(dllnames[i]);
+                        GlobalDyamicModManager p2;
+                        if (!GlobalModLoader.IsCodeModLoaded(StoragePathManager.GetCodeModPathWithName(dllname2z[0]), out p2))
+                            GlobalModLoader.LoadCodeMod(StoragePathManager.GetCodeModPathWithName(dllname2z[0]), m, dllname2z.Length >= 2 ? dllname2z[1] : "", DyamicModType.LUAModule);
+                    }
+                }
+
                 string partname = GetPropertyValue("RegisterGamePart");
                 if (!string.IsNullOrEmpty(partname))
                 {

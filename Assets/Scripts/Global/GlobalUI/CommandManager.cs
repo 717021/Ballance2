@@ -111,10 +111,10 @@ public class CommandManager : MonoBehaviour
     }
     private void SetCommandTip(string s)
     {
-        textTips.text = "<color=#66eeeeff>Ctrl+Shift</color> <color=#1177ffff>或设置更改筛选模式：</color><color=#ee11ee>" + s + "</color>" +
-            "<color=#66eeeeff>PageUP/PageDown/手指拖动</color> <color=#1177ffff>上移下移</color>" +
-            "<color=#0077eeff>输入指令回车后执行指令</color>" +
-            "<点击         或按<color=#66eeeeff>F12</color> <color=#66aaff>关闭指令窗口</color>";
+        textTips.text = "Debug Mode "+
+            "\n<color=#66eeeeff>PageUP/PageDown/手指拖动</color> <color=#1177ffff>上移下移</color>" +
+            "\n<color=#0077eeff>输入指令回车后执行指令</color>" +
+            "\n点击         或按<color=#66eeeeff>F12</color> <color=#66aaff>关闭指令窗口</color>";
     }
     private void SetCommandShowFilter(string s)
     {
@@ -581,6 +581,7 @@ public class CommandManager : MonoBehaviour
 
         /*for (int i = 0; i < 50; i++)
             OutPut(i.ToString() + "   xxx");*/
+        SetCommandTip("");
     }
     private void Update()
     {

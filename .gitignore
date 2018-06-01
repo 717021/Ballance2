@@ -7,6 +7,11 @@ Ballance.sln
 Ballance2.csproj
 Ballance2.sln
 .vs/
-Debug/Ballance2_Data/
+Debug/Ballance2/Ballance2_Data/
+
 UnityPlayer.dll
 Ballance2.exe
+GameAssembly.dll
+SymbolMap
+UnityCrashHandler32.exe
+Ballance2_BackUpThisFolder_ButDontShipItWithYourGame/

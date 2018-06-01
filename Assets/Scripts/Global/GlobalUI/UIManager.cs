@@ -1,4 +1,6 @@
 ﻿using Assets.Scripts.Global;
+using Assets.Scripts.Global.GlobalUI;
+using Assets.Scripts.Global.GlobalUI.UIElements;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,15 +21,35 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public FadeHlper UIFadeHlper;
 
+    //菜单模板
+    const string main_start_menu =
+        "$TextDef##0#显示设置" +
+        "$BtnMainMenuDef#StartOrg#0#原版关卡" +
+        "$BtnMainMenuDef##0#自定义关卡" +
+        "$BtnMainMenuDef##0#选择关卡文件" +
+        "$BtnMainBackDef#Back#20#返回";
+
+    const string test_menu =
+        "$TextDef##0#显示设置" +
+        "$DropDownDef#dropdownScreen#20#屏幕分辨率设置" +
+        "$ToggleDef#toggleFunnScreen#10#全屏" +
+        "$DropDownDef#dropdownQuality#20#画质设置" +
+        "$TextDef##20#在游戏启动时(双击exe时) 按住“Alt”键也可以设置" +
+        "$BtnMainBackDef#Back#20#返回";
+
+
     private void test()
     {
-        GlobalMediator.UIManager.UIMaker.RegisterUIGroup("MainMenuUI");
-        GlobalMediator.UIManager.UIMaker.RegisterMenuPage("MainMenuUI", "Main", null);
-        GlobalMediator.UIManager.UIMaker.RegisterMenuPageButton("MainMenuUI", "Main", "开始", "Menu", null);
-        GlobalMediator.UIManager.UIMaker.RegisterMenuPageButton("MainMenuUI", "Main", "分数", "Menu", null);
-        GlobalMediator.UIManager.UIMaker.RegisterMenuPageButton("MainMenuUI", "Main", "设置", "Menu", null);
-        GlobalMediator.UIManager.UIMaker.RegisterMenuPageButton("MainMenuUI", "Main", "关于", "Menu", null);
-        GlobalMediator.UIManager.UIMaker.RegisterMenuPageButton("MainMenuUI", "Main", "退出", "Menu", null);
+        UIMaker.RegisterUIGroup("MainMenuUI");
+        UIMenu menu = UIMaker.RegisterMenuPage("MainMenuUI", "Main", null);
+
+        UIMaker.CreateMenuAuto(menu, test_menu);
+
+        GoMenuPage(menu);
+    }
+    private void Btn_onClick()
+    {
+        UIMaker.ShowDialog(0, "测试对话框", "测试文字", "确定", "关闭");
     }
 
     #region 初始化参数
@@ -37,19 +59,20 @@ public class UIManager : MonoBehaviour
 
     public GameObject MenuPageTemplate;
     public GameObject MenuPageCleanTemplate;
+    public GameObject SliderPrefabTemplate;
+    public GameObject TextPrefabTemplate;
+    public GameObject TogglePrefabTemplate;
+    public GameObject DropDownPrefabTemplate;
+    public GameObject BtnMulitTemplate;
+    public GameObject BtnMainMenuTemplate;
+    public GameObject BtnMainBackTemplate;
+    public GameObject BtnLevTemplate;
+    public GameObject TextTitlePerfab;
 
-    public GameObject MenuTextTemplate;
-    public GameObject MenuBtnHugeTemplate;
-    public GameObject MenuBtnNornalTemplate;
-    public GameObject MenuBtnSmallTemplate;
-    public GameObject MenuBtnMultiTemplate;
-    public GameObject MenuImageTemplate;
-    public GameObject MenuSwitchTemplate;
-    public GameObject MenuScrollTemplate;
-    public GameObject MenuDropDownTemplate;
 
     public DialogUI MenuDialog2;
     public DialogUI MenuDialog3;
+
     #endregion
 
     /// <summary>
@@ -83,30 +106,107 @@ public class UIManager : MonoBehaviour
         public StandardUIMaker(UIManager parent)
         {
             this.parent = parent;
-            RegisterMenuPageButtonStyle("Menu", parent.MenuBtnHugeTemplate);
-            RegisterMenuPageButtonStyle("Back", parent.MenuBtnNornalTemplate);
-            RegisterMenuPageButtonStyle("Level", parent.MenuBtnSmallTemplate);
-            RegisterMenuPageButtonStyle("Key", parent.MenuBtnMultiTemplate);
-
+            RegisterUIEle("TextTitle", parent.TextTitlePerfab);
+            RegisterUIEle("TextDef", parent.TextPrefabTemplate);
+            RegisterUIEle("ToggleDef", parent.TogglePrefabTemplate);
+            RegisterUIEle("SliderDef", parent.SliderPrefabTemplate);
+            RegisterUIEle("DropDownDef", parent.DropDownPrefabTemplate);
+            RegisterUIEle("BtnMulitDef", parent.BtnMulitTemplate);
+            RegisterUIEle("BtnMainMenuDef", parent.BtnMainMenuTemplate);
+            RegisterUIEle("BtnMainBackDef", parent.BtnMainBackTemplate);
+            RegisterUIEle("BtnLevDef", parent.BtnLevTemplate);
         }
 
         private UIManager parent;
-        private List<uiGroup> uIGroups = new List<uiGroup>();
-        private class uiGroup
+        private List<UIGroup> uIGroups = new List<UIGroup>();
+        private static List<UIEleCreate> uiEles = new List<UIEleCreate>();
+        private class UIGroup
         {
             public string Name;
             public GameObject UI;
-            public List<uiPage> Pages = new List<uiPage>();
+            public List<UIPage> Pages = new List<UIPage>();
         }
-        private class uiPage
+        private class UIEleCreate
         {
-            public bool IsMenuPage;
-            public string Address;
-            public GameObject Page;
-            public GameObject PageInnern;
-            public int BtnCount = 0;
-            public float Height = 0;
+            public string Name;
+            public GameObject Perfab;
         }
+
+        /// <summary>
+        /// 注册UI元素
+        /// </summary>
+        /// <param name="group">指定元素</param>
+        /// <returns></returns>
+        public bool RegisterUIEle(string name, GameObject perfab)
+        {
+            UIEleCreate uo;
+            if (!IsUIEleRegistered(name, out uo))
+            {
+                if (perfab != null)
+                {
+                    UIEleCreate u = new UIEleCreate() { Name = name, Perfab = perfab };
+                    uiEles.Add(u);
+                }
+            }
+            else
+            {
+                uo.Perfab = perfab;
+            }
+            return false;
+        }
+        /// <summary>
+        /// 获取UI元素是否已经注册
+        /// </summary>
+        /// <param name="group">指定元素</param>
+        /// <returns>返回UI元素是否已经注册</returns>
+        public bool IsUIEleRegistered(string name)
+        {
+            bool rs = false;
+            foreach (UIEleCreate u in uiEles)
+            {
+                if (u.Name == name)
+                {
+                    rs = true;
+                    break;
+                }
+            }
+            return rs;
+        }
+        /// <summary>
+        /// 取消注册UI组
+        /// </summary>
+        /// <param name="group">指定元素</param>
+        /// <returns>返回是否成功</returns>
+        public bool UnregisterUIEle(string name)
+        {
+            UIEleCreate g;
+            if (IsUIEleRegistered(name, out g))
+            {
+                uiEles.Remove(g);
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// 获取UI组是否已经注册
+        /// </summary>
+        /// <param name="name">指定元素</param>
+        /// <param name="ug">如果已经注册则返回元素到此变量</param>
+        /// <returns>返回UI元素是否已经注册</returns>
+        private bool IsUIEleRegistered(string name, out UIEleCreate ug)
+        {
+            foreach (UIEleCreate u in uiEles)
+            {
+                if (u.Name == name)
+                {
+                    ug = u;
+                    return true;
+                }
+            }
+            ug = null;
+            return false;
+        }
+
 
         /// <summary>
         /// 注册UI组
@@ -131,7 +231,7 @@ public class UIManager : MonoBehaviour
                 ui.transform.SetParent(parent.Canvas.transform);
                 if (ui.activeSelf)
                     ui.SetActive(false);
-                uiGroup u = new uiGroup() { Name = group, UI = ui };
+                UIGroup u = new UIGroup() { Name = group, UI = ui };
                 uIGroups.Add(u);
             }
             return false;
@@ -144,7 +244,7 @@ public class UIManager : MonoBehaviour
         public bool IsUIGroupRegistered(string group)
         {
             bool rs = false;
-            foreach (uiGroup u in uIGroups)
+            foreach (UIGroup u in uIGroups)
             {
                 if (u.Name == group)
                 {
@@ -161,7 +261,7 @@ public class UIManager : MonoBehaviour
         /// <returns>返回是否成功</returns>
         public bool UnregisterUIGroup(string group)
         {
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
                 uIGroups.Remove(g);
@@ -175,10 +275,10 @@ public class UIManager : MonoBehaviour
         /// <param name="group">指定组</param>
         /// <param name="ug">如果已经注册则返回组到此变量</param>
         /// <returns>返回UI组是否已经注册</returns>
-        private bool IsUIGroupRegistered(string group, out uiGroup ug)
+        private bool IsUIGroupRegistered(string group, out UIGroup ug)
         {
             bool rs = false;
-            foreach (uiGroup u in uIGroups)
+            foreach (UIGroup u in uIGroups)
             {
                 if (u.Name == group)
                 {
@@ -186,7 +286,7 @@ public class UIManager : MonoBehaviour
                     return true;
                 }
             }
-            ug = default(uiGroup);
+            ug = default(UIGroup);
             return rs;
         }
 
@@ -198,49 +298,51 @@ public class UIManager : MonoBehaviour
         /// <param name="pg">自定义UI页 UI物体（不填使用默认）</param>
         /// <param name="pginnern">自定义UI页 UI物体（内部）</param>
         /// <returns>返回是否成功</returns>
-        public bool RegisterMenuPage(string group, string address, GameObject pg, GameObject pginnern = null)
+        public UIMenu RegisterMenuPage(string group, string address, UIMenu pg)
         {
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
                 if (!IsMenuPageRegistered(group, address))
                 {
                     if (pg == null)
                     {
-                        pg = Instantiate(parent.MenuPageTemplate);
+                        pg = Instantiate(parent.MenuPageTemplate).GetComponent<UIMenu>();
                         pg.transform.SetParent(g.UI.transform);
                         RectTransform t = pg.GetComponent<RectTransform>();
                         t.anchoredPosition = Vector2.zero;
                         t.offsetMax = Vector2.zero;
                         t.offsetMin = Vector2.zero;
                         t.sizeDelta = new Vector2(350, t.sizeDelta.y);
-                        if (pg.activeSelf)
-                            pg.SetActive(false);
-                        uiPage p = new uiPage() { Address = address, Page = pg, PageInnern = pg.transform.GetChild(0).gameObject, IsMenuPage = true };
-                        g.Pages.Add(p);
+                        pg.Oninit();
+                        if (pg.gameObject.activeSelf)
+                            pg.gameObject.SetActive(false);
+                        pg.Address = address;
+                        pg.Group = group;
+                        g.Pages.Add(pg);
                     }
                     else
                     {
-                        if (pg.activeSelf)
-                            pg.SetActive(false);
-                        uiPage p = new uiPage() { Address = address, Page = pg, PageInnern = (pginnern == null ? pg : pginnern) };
-                        g.Pages.Add(p);
+                        pg.Oninit();
+                        if (pg.gameObject.activeSelf)
+                            pg.gameObject.SetActive(false);
+                        g.Pages.Add(pg);
                     }
-                    return true;
+                    return pg;
                 }
             }
-            return false;
+            return null;
         }
         /// <summary>
-        /// 使用 自定义 UI页模板 注册 UI 页
+        /// 使用 自定义 UI页模板 注册 UI 页 UI页模板 必须 附加 UIMenu 或  UIMenu 的继承类
         /// </summary>
         /// <param name="group">指定组</param>
         /// <param name="address">指定地址</param>
         /// <param name="template"> 自定义 UI页模板</param>
         /// <returns>返回是否成功</returns>
-        public bool RegisterMenuPageWithTemplate(string group, string address, GameObject template)
+        public UIMenu RegisterMenuPageWithTemplate(string group, string address, GameObject template)
         {
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
                 if (!IsMenuPageRegistered(group, address))
@@ -253,16 +355,19 @@ public class UIManager : MonoBehaviour
                         t.anchoredPosition = Vector2.zero;
                         t.offsetMax = Vector2.zero;
                         t.offsetMin = Vector2.zero;
-                        t.sizeDelta = new Vector2(350, t.sizeDelta.y);
+                        t.sizeDelta = new Vector2(350, t.sizeDelta.y);                       
+                        UIMenu p = pg.GetComponent<UIMenu>();
+                        p.Oninit();
                         if (pg.activeSelf)
                             pg.SetActive(false);
-                        uiPage p = new uiPage() { Address = address, Page = pg, PageInnern = pg.transform.childCount == 0 ? null : pg.transform.GetChild(0).gameObject, IsMenuPage = true };
+                        p.Address = address;
+                        p.Group = group;
                         g.Pages.Add(p);
-                        return true;
+                        return p;
                     }
                 }
             }
-            return false;
+            return null;
         }
         /// <summary>
         /// 获取 UI 页 是否已经注册
@@ -273,10 +378,10 @@ public class UIManager : MonoBehaviour
         public bool IsMenuPageRegistered(string group, string address)
         {
             bool rs = false;
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
-                foreach (uiPage u in g.Pages)
+                foreach (UIPage u in g.Pages)
                 {
                     if (u.Address == address)
                     {
@@ -294,13 +399,13 @@ public class UIManager : MonoBehaviour
         /// <param name="address">指定地址</param>
         /// <param name="p">如果已经注册则返回指定页到变量 p 中</param>
         /// <returns>返回是否注册</returns>
-        private bool IsMenuPageRegistered(string group, string address, out uiPage p)
+        private bool IsMenuPageRegistered(string group, string address, out UIPage p)
         {
             bool rs = false;
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
-                foreach (uiPage u in g.Pages)
+                foreach (UIPage u in g.Pages)
                 {
                     if (u.Address == address)
                     {
@@ -309,7 +414,7 @@ public class UIManager : MonoBehaviour
                     }
                 }
             }
-            p = default(uiPage);
+            p = null;
             return rs;
         }
         /// <summary>
@@ -320,10 +425,10 @@ public class UIManager : MonoBehaviour
         /// <returns>返回是否成功</returns>
         public bool UnegisterMenuPage(string group, string address)
         {
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
-                uiPage p;
+                UIPage p;
                 if (IsMenuPageRegistered(group, address, out p))
                 {
                     g.Pages.Remove(p);
@@ -333,243 +438,23 @@ public class UIManager : MonoBehaviour
             return false;
         }
 
-        private Dictionary<string, GameObject> pageButtonStyles = new Dictionary<string, GameObject>();
-
         /// <summary>
-        /// 注册按钮样式
+        /// 跳转到指定 UI 页
         /// </summary>
-        /// <param name="btnStyle">按钮样式名称</param>
-        /// <param name="perfab">按钮样式perfab</param>
-        public void RegisterMenuPageButtonStyle(string btnStyle, GameObject perfab)
+        /// <param name="p">指定UI页</param>
+        public void GoMenuPage(UIPage p)
         {
-            pageButtonStyles.Add(btnStyle, perfab);
+            if (p != null) GoMenuPage(p.Group, p.Address);
         }
         /// <summary>
-        /// 向指定页里添加一个按钮
+        /// 隐藏 UI 页
         /// </summary>
-        /// <param name="group">指定组</param>
-        /// <param name="address">指定地址</param>
-        /// <param name="text">按钮文字</param>
-        /// <param name="btnStyle">这个按钮使用的样式</param>
-        /// <param name="callback">点击事件</param>
-        /// <param name="offist">pos Y偏移</param>
-        /// <returns></returns>
-        public Button RegisterMenuPageButton(string group, string address, string text, string btnStyle, EventTriggerListener.VoidDelegate callback, int offist = 20)
+        /// <param name="p">指定UI页</param>
+        public void HideMenuPage(UIPage p)
         {
-            Button rs = null;
-            uiGroup g;
-            if (IsUIGroupRegistered(group, out g))
-            {
-                uiPage p;
-                if (IsMenuPageRegistered(group, address, out p))
-                {
-                    if (p.IsMenuPage)
-                    {
-                        GameObject perfab = null;
-                        if (pageButtonStyles.TryGetValue(btnStyle, out perfab))
-                        {
-                            p.BtnCount = p.BtnCount + 1;
-                            GameObject btn = Instantiate(perfab);
-                            btn.transform.SetParent(p.PageInnern.transform);
-                            btn.transform.GetChild(0).gameObject.GetComponent<Text>().text = text;
-                            RectTransform pi = p.PageInnern.GetComponent<RectTransform>();
-                            RectTransform rgg = btn.GetComponent<RectTransform>();
-                            p.Height += (rgg.sizeDelta.y + offist);
-                            pi.sizeDelta = new Vector2(pi.sizeDelta.x, p.Height);
-                            rgg.anchoredPosition = new Vector2(0, -p.Height + rgg.sizeDelta.y / 2);
-                            if (callback != null) EventTriggerListener.Get(btn).onClick = callback;
-                            rs = btn.GetComponent<Button>();
-                        }
-                    }
-                }
-            }
-            return rs;
+            if (p != null)
+                HideMenuPage(p.Group);
         }
-        /// <summary>
-        /// 向指定页里添加一个复选框
-        /// </summary>
-        /// <param name="group">指定组</param>
-        /// <param name="address">指定地址</param>
-        /// <param name="text">复选框文字</param>
-        /// <param name="offist">pos Y偏移</param>
-        /// <returns></returns>
-        public Toggle RegisterMenuPageToggle(string group, string address, string text, int offist = 20)
-        {
-            Toggle rs = null;
-            uiGroup g;
-            if (IsUIGroupRegistered(group, out g))
-            {
-                uiPage p;
-                if (IsMenuPageRegistered(group, address, out p))
-                {
-                    if (p.IsMenuPage)
-                    {
-                        GameObject perfab = parent.MenuSwitchTemplate;
-                        p.BtnCount = p.BtnCount + 1;
-                        GameObject btn = Instantiate(perfab);
-                        btn.transform.SetParent(p.PageInnern.transform);
-                        btn.transform.GetChild(1).gameObject.GetComponent<Text>().text = text;
-                        RectTransform pi = p.PageInnern.GetComponent<RectTransform>();
-                        RectTransform rgg = btn.GetComponent<RectTransform>();
-                        p.Height += (rgg.sizeDelta.y + offist);
-                        pi.sizeDelta = new Vector2(pi.sizeDelta.x, p.Height);
-                        rgg.anchoredPosition = new Vector2(0, -p.Height + rgg.sizeDelta.y / 2);
-                        rs = btn.GetComponent<Toggle>();
-
-                    }
-                }
-            }
-            return rs;
-        }
-        /// <summary>
-        /// 向指定页里添加一个文字控件
-        /// </summary>
-        /// <param name="group">指定组</param>
-        /// <param name="address">指定地址</param>
-        /// <param name="text">文本</param>
-        /// <param name="offist">pos Y偏移</param>
-        /// <returns></returns>
-        public Text RegisterMenuPageText(string group, string address, string text, int offist = 20)
-        {
-            Text rs = null;
-            uiGroup g;
-            if (IsUIGroupRegistered(group, out g))
-            {
-                uiPage p;
-                if (IsMenuPageRegistered(group, address, out p))
-                {
-                    if (p.IsMenuPage)
-                    {
-                        p.BtnCount = p.BtnCount + 1;
-                        GameObject btn = Instantiate(parent.MenuTextTemplate);
-                        btn.transform.SetParent(p.PageInnern.transform);
-                        Text txt = btn.GetComponent<Text>();
-                        txt.text = text;
-                        rs = txt;
-                        RectTransform pi = p.PageInnern.GetComponent<RectTransform>();
-                        RectTransform rgg = btn.GetComponent<RectTransform>();
-                        p.Height += (rgg.sizeDelta.y + offist);
-                        pi.sizeDelta = new Vector2(pi.sizeDelta.x, p.Height);
-                        rgg.anchoredPosition = new Vector2(0, -p.Height + rgg.sizeDelta.y / 2);
-                    }
-                }
-            }
-            return rs;
-        }
-        /// <summary>
-        /// 向指定页里添加一个图像控件
-        /// </summary>
-        /// <param name="group">指定组</param>
-        /// <param name="address">指定地址</param>
-        /// <param name="image">图片</param>
-        /// <param name="offist">pos Y偏移</param>
-        /// <returns></returns>
-        public Image RegisterMenuPageImage(string group, string address, Sprite image, int offist = 20)
-        {
-            uiGroup g;
-            Image rs = null;
-            if (IsUIGroupRegistered(group, out g))
-            {
-                uiPage p;
-                if (IsMenuPageRegistered(group, address, out p))
-                {
-                    if (p.IsMenuPage)
-                    {
-                        p.BtnCount = p.BtnCount + 1;
-                        GameObject btn = Instantiate(parent.MenuImageTemplate);
-                        btn.transform.SetParent(p.PageInnern.transform);
-                        Image img = btn.GetComponent<Image>();
-                        img.sprite = image;
-                        rs = img;
-                        RectTransform pi = p.PageInnern.GetComponent<RectTransform>();
-                        RectTransform rgg = btn.GetComponent<RectTransform>();
-                        p.Height += (rgg.sizeDelta.y + offist);
-                        pi.sizeDelta = new Vector2(pi.sizeDelta.x, p.Height);
-                        rgg.anchoredPosition = new Vector2(0, -p.Height + rgg.sizeDelta.y / 2);
-                    }
-                }
-            }
-            return rs;
-        }
-        /// <summary>
-        /// 向指定页里添加一个滑动条控件
-        /// </summary>
-        /// <param name="group">指定组</param>
-        /// <param name="address">指定地址</param>
-        /// <param name="text">滑动条上的文字</param>
-        /// <param name="startvalue">滑动条起始数值</param>
-        /// <param name="callback">滑动条点击事件</param>
-        /// <param name="offist">pos Y偏移</param>
-        /// <returns></returns>
-        public Slider RegisterMenuPageSlider(string group, string address, string text, float startvalue, EventTriggerListener.VoidDelegate callback, int offist = 20)
-        {
-            uiGroup g;
-            Slider rs = null;
-            if (IsUIGroupRegistered(group, out g))
-            {
-                uiPage p;
-                if (IsMenuPageRegistered(group, address, out p))
-                {
-                    if (p.IsMenuPage)
-                    {
-                        p.BtnCount = p.BtnCount + 1;
-                        GameObject btn = Instantiate(parent.MenuScrollTemplate);
-                        btn.transform.SetParent(p.PageInnern.transform);
-                        btn.transform.GetChild(1).gameObject.GetComponent<Text>().text = text;
-                        GameObject sl = btn.transform.GetChild(0).gameObject;
-                        Slider slider = sl.GetComponent<Slider>();
-                        slider.value = startvalue;
-                        rs = slider;
-                        RectTransform pi = p.PageInnern.GetComponent<RectTransform>();
-                        RectTransform rgg = btn.GetComponent<RectTransform>();
-                        p.Height += (rgg.sizeDelta.y + offist);
-                        pi.sizeDelta = new Vector2(pi.sizeDelta.x, p.Height);
-                        rgg.anchoredPosition = new Vector2(0, -p.Height + rgg.sizeDelta.y / 2);
-                        if (callback != null) EventTriggerListener.Get(sl).onClick = callback;
-                    }
-                }
-            }
-            return rs;
-        }
-        /// <summary>
-        /// 向指定页里添加一个下拉列表
-        /// </summary>
-        /// <param name="group">指定组</param>
-        /// <param name="address">指定地址</param>
-        /// <param name="text">下拉列表上的文字</param>
-        /// <param name="callback">下拉列表点击事件</param>
-        /// <param name="offist">pos Y偏移</param>
-        /// <returns></returns>
-        public Dropdown RegisterMenuPageDropdown(string group, string address, string text, EventTriggerListener.VoidDelegate callback, int offist = 20)
-        {
-            uiGroup g;
-            Dropdown rs = null;
-            if (IsUIGroupRegistered(group, out g))
-            {
-                uiPage p;
-                if (IsMenuPageRegistered(group, address, out p))
-                {
-                    if (p.IsMenuPage)
-                    {
-                        p.BtnCount = p.BtnCount + 1;
-                        GameObject btn = Instantiate(parent.MenuDropDownTemplate);
-                        btn.transform.SetParent(p.PageInnern.transform);
-                        btn.transform.Find("DropdownText").gameObject.GetComponent<Text>().text = text;
-                        GameObject sl = btn.transform.Find("DropdownBase").gameObject;
-                        Dropdown dropdown = sl.GetComponent<Dropdown>();
-                        rs = dropdown;
-                        RectTransform pi = p.PageInnern.GetComponent<RectTransform>();
-                        RectTransform rgg = btn.GetComponent<RectTransform>();
-                        p.Height += (rgg.sizeDelta.y + offist);
-                        pi.sizeDelta = new Vector2(pi.sizeDelta.x, p.Height);
-                        rgg.anchoredPosition = new Vector2(0, -p.Height + rgg.sizeDelta.y / 2);
-                        if (callback != null) EventTriggerListener.Get(sl).onClick = callback;
-                    }
-                }
-            }
-            return rs;
-        }
-
         /// <summary>
         /// 跳转到指定 UI 页
         /// </summary>
@@ -577,20 +462,20 @@ public class UIManager : MonoBehaviour
         /// <param name="address">指定地址</param>
         public void GoMenuPage(string group, string address)
         {
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
                 if (!g.UI.activeSelf)
                     g.UI.SetActive(true);
                 if (parent.showedPage != null)
-                    parent.showedPage.SetActive(false);
+                    parent.showedPage.Hide();
 
-                uiPage p;
+                UIPage p;
                 if (IsMenuPageRegistered(group, address, out p))
                 {
-                    if (!p.Page.activeSelf)
-                        p.Page.SetActive(true);
-                    parent.showedPage = p.Page;
+                    if (!p.IsShowed())
+                        p.Show();
+                    parent.showedPage = p;
                     parent.lastPageAddress = p.Address;
                 }
             }
@@ -601,11 +486,11 @@ public class UIManager : MonoBehaviour
         /// <param name="group">指定组</param>
         public void HideMenuPage(string group)
         {
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
                 if (parent.showedPage != null)
-                    parent.showedPage.SetActive(false);
+                    parent.showedPage.Hide();
                 parent.showedPage = null;
                 if (g.UI.activeSelf)
                     g.UI.SetActive(false);
@@ -618,23 +503,82 @@ public class UIManager : MonoBehaviour
         /// <param name="group">指定组</param>
         public void BackForntMenuPage(string group)
         {
-            uiGroup g;
+            UIGroup g;
             if (IsUIGroupRegistered(group, out g))
             {
                 if (parent.lastPageAddress != "")
                 {
                     if (parent.showedPage != null)
-                        parent.showedPage.SetActive(false);
+                        parent.showedPage.Hide();
 
                     if (parent.lastPageAddress.Contains("."))
                     {
-                        parent.lastPageAddress = parent.lastPageAddress.Substring(0, parent.lastPageAddress.IndexOf('.'));
+                        parent.lastPageAddress = parent.lastPageAddress.Substring(0, parent.lastPageAddress.LastIndexOf('.'));
                         GoMenuPage(group, parent.lastPageAddress);
                     }
                 }
             }
         }
 
+        public UIElement CreateElementAuto(UIMenu m, string eleTypeName, string name = "", int sp = 0, string initstr="")
+        {
+            if (m != null)
+            {
+                UIEleCreate g;
+                if (IsUIEleRegistered(eleTypeName, out g))
+                {
+                    UIElement btn = Instantiate(g.Perfab).GetComponent<UIElement>();
+                    if (btn == null)
+                    {
+                        Destroy(btn);
+                        return null;
+                    }
+                    btn.Oninit();
+                    if (initstr != "") btn.StartSet(initstr);
+                    btn.Name = name;
+                    btn.SpaceStart = sp;
+                    if (name != "")
+                        btn.gameObject.name = eleTypeName + "_" + name;
+                    m.AddEle(btn);
+                    return btn;
+                }
+            }
+            return null;
+        }
+        public bool CreateMenuAuto(UIMenu m, string table)
+        {
+            UIAutoLayoutMenu mx = null;
+            if (m is UIAutoLayoutMenu)
+            {
+                mx = m as UIAutoLayoutMenu;
+                mx.LockLayout();
+            }
+            string[] d = table.Split('$');
+            string li = "";
+            for (int i = 0; i < d.Length; i++)
+            {
+                li = d[i];
+                if (li.Contains("#"))
+                {
+                    string[] s = li.Split('#');
+                    if (s.Length == 4)
+                        CreateElementAuto(m, s[0], s[1], int.Parse(s[2]), s[3]);
+                    else if (s.Length == 3)
+                        CreateElementAuto(m, s[0], s[1], int.Parse(s[2]));
+                    else if (s.Length == 2)
+                        CreateElementAuto(m, s[0], s[1]);
+                    else CreateElementAuto(m, s[0]);
+                }
+            }
+            m.UpdateMenu();
+            if (m is UIAutoLayoutMenu)
+            {
+                mx.UnLockLayout();
+
+                mx.DoLayout();
+            }
+            return false;
+        }
 
         void DialogCallBack(bool b, bool b2)
         {
@@ -675,7 +619,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private GameObject showedPage;
+    private UIPage showedPage;
     private string lastPageAddress = "";
     private int showedDialogid = 0;
     private static bool isBlack;
@@ -688,6 +632,23 @@ public class UIManager : MonoBehaviour
         get { return lastPageAddress; }
     }
 
+    /// <summary>
+    /// 跳转到指定 UI 页
+    /// </summary>
+    /// <param name="p">指定UI页</param>
+    public void GoMenuPage(UIPage p)
+    {
+        if (p != null) GoMenuPage(p.Group, p.Address);
+    }
+    /// <summary>
+    /// 隐藏 UI 页
+    /// </summary>
+    /// <param name="p">指定UI页</param>
+    public void HideMenuPage(UIPage p)
+    {
+        if (p != null)
+            HideMenuPage(p.Group);
+    }
     /// <summary>
     /// 跳转到指定 UI 页
     /// </summary>
@@ -719,7 +680,7 @@ public class UIManager : MonoBehaviour
     public void HideUIForAWhile()
     {
         if (showedPage != null)
-            if (showedPage.activeSelf) showedPage.SetActive(false);
+            if (showedPage.IsShowed()) showedPage.Hide();
     }
     /// <summary>
     /// 强制显示 UI
@@ -727,17 +688,17 @@ public class UIManager : MonoBehaviour
     public void ReshowUI()
     {
         if (showedPage != null)
-            if (!showedPage.activeSelf) showedPage.SetActive(true);
+            if (!showedPage.IsShowed()) showedPage.Show();
     }
     /// <summary>
-    /// 屏幕不黑
+    /// 设置开始时候屏幕不黑
     /// </summary>
     public static void SetStartNoBlack()
     {
         isBlack = false;
     }
     /// <summary>
-    /// 屏幕变黑
+    /// 设置开始的时候屏幕变黑
     /// </summary>
     public static void SetStartBlack()
     {
@@ -749,13 +710,20 @@ public class UIManager : MonoBehaviour
         UIMaker = new StandardUIMaker(this);
         GlobalMediator.SetUIManager(this);
         if(!GlobalSettings.StartInIntro) dbgCam.SetActive(true);
-        //test();
-        if(isBlack)
-            UIFadeHlper.Alpha = 1;
+
+        if(isBlack) UIFadeHlper.Alpha = 1;
         else UIFadeHlper.Alpha = 0;
     }
-    private void Update()
+    private void OnGUI()
     {
+      /*  if(GUI.Button(new Rect(0,0,50,30), "in();"))
+        {
+            FadeIn();
+        }
+        if (GUI.Button(new Rect(0, 35, 50, 30), "out();"))
+        {
+            FadeOut();
+        }*/
     }
     private void OnDestroy()
     {

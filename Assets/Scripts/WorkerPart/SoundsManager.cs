@@ -172,31 +172,36 @@ public class SoundsManager : MonoBehaviour
         {
             if ((int)datas[2] == 1)
             {
-                isPlayingVoice.Add(name, AudioPlayerBackGround);
+                if (!isPlayingVoice.ContainsKey(name))
+                    isPlayingVoice.Add(name, AudioPlayerBackGround);
                 AudioPlayerBackGround.clip = a;
                 AudioPlayerBackGround.Play();
             }
             else if ((int)datas[2] == 2)
             {
-                isPlayingVoice.Add(name, AudioPlayerVoice);
+                if (!isPlayingVoice.ContainsKey(name))
+                    isPlayingVoice.Add(name, AudioPlayerVoice);
                 AudioPlayerVoice.clip = a;
                 AudioPlayerVoice.Play();
             }
             else if ((int)datas[2] == 3)
             {
-                isPlayingVoice.Add(name, AudioPlayerBackGroundLoop);
+                if (!isPlayingVoice.ContainsKey(name))
+                    isPlayingVoice.Add(name, AudioPlayerBackGroundLoop);
                 AudioPlayerBackGroundLoop.clip = a;
                 AudioPlayerBackGroundLoop.Play();
             }
             else if ((int)datas[2] == 4)
             {
-                isPlayingVoice.Add(name, AudioPlayerVoiceLoop);
+                if (!isPlayingVoice.ContainsKey(name))
+                    isPlayingVoice.Add(name, AudioPlayerVoiceLoop);
                 AudioPlayerVoiceLoop.clip = a;
                 AudioPlayerVoiceLoop.Play();
             }
             else if ((int)datas[2] == 5)
             {
-                isPlayingVoice.Add(datas[0] as string + datas[1] as string, datas[3] as AudioSource);
+                if (!isPlayingVoice.ContainsKey(name))
+                    isPlayingVoice.Add(datas[0] as string + datas[1] as string, datas[3] as AudioSource);
                 (datas[3] as AudioSource).clip = a;
                 (datas[3] as AudioSource).Play();
             }
